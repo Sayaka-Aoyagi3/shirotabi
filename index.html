@@ -183,6 +183,28 @@
       font-size: 16px;
     }
 
+    .unlock-panel {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding-top: 6px;
+    }
+
+    .unlock-panel input {
+      min-height: 42px;
+      font-size: 14px;
+    }
+
+    .unlock-message {
+      grid-column: 1 / -1;
+      min-height: 20px;
+      margin: 0;
+      color: var(--indigo);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
     .genkan {
       position: relative;
       flex: 1;
@@ -502,6 +524,37 @@
       line-height: 1.7;
     }
 
+    .destination-card {
+      display: grid;
+      gap: 4px;
+      padding: 12px;
+      border: 1px dashed rgba(26, 58, 92, 0.32);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 249, 0.64);
+    }
+
+    .destination-card.locked {
+      filter: grayscale(1);
+      opacity: 0.58;
+    }
+
+    .destination-card strong {
+      color: var(--indigo);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 24px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(245, 200, 66, 0.24);
+      color: var(--indigo);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
     .return-stage {
       display: grid;
       place-items: center;
@@ -785,6 +838,31 @@
       border-bottom: 4px solid var(--wood);
     }
 
+    .scene.museum::before {
+      content: "";
+      position: absolute;
+      left: 34px;
+      right: 34px;
+      top: 34px;
+      height: 50px;
+      border: 4px solid var(--indigo);
+      background:
+        radial-gradient(circle at 36% 52%, #8B7355 0 18px, transparent 19px),
+        linear-gradient(180deg, rgba(245, 200, 66, 0.24), rgba(255, 253, 249, 0.7));
+    }
+
+    .scene.museum::after {
+      content: "";
+      position: absolute;
+      left: 86px;
+      top: 46px;
+      width: 68px;
+      height: 34px;
+      border-radius: 50% 50% 0 0;
+      background: #8B7355;
+      box-shadow: 0 10px 0 rgba(245, 200, 66, 0.24);
+    }
+
     .trip-card p {
       position: relative;
       margin: 0;
@@ -820,6 +898,11 @@
         <p>旅好きの白い犬に、名前をつけてください。</p>
         <input id="dogNameInput" maxlength="10" placeholder="例：しろ、もち、こはく">
         <button class="primary" id="startGameButton">決定</button>
+        <div class="unlock-panel">
+          <input id="titleUnlockCodeInput" maxlength="20" placeholder="特別なことば">
+          <button class="quiet" id="titleUnlockCodeButton">解放</button>
+          <p class="unlock-message" id="titleUnlockMessage"></p>
+        </div>
       </div>
     </section>
 
@@ -868,8 +951,9 @@
           <p class="sub">荷物をひとつ選びます</p>
         </div>
       </header>
-      <div class="sheet">
+        <div class="sheet">
         <div id="luggageList" class="luggage-list"></div>
+        <div id="museumDestinationHint" class="destination-card locked"></div>
         <div class="hint" id="luggageHint">荷物を選ぶと、旅先の気配がわかります。</div>
         <button class="primary" id="departButton" disabled>行ってらっしゃい</button>
         <p class="small-note">デモでは旅時間を1/10に短縮しています。実時間に戻す場合は JavaScript の <code>TIME_SCALE</code> を <code>1</code> にしてください。</p>
@@ -922,6 +1006,11 @@
           <span class="resource-pill" id="shopBranchCount">木のえだ 0本</span>
           <span class="resource-pill" id="shopFineBranchCount">りっぱな木のえだ 0本</span>
         </div>
+        <div class="unlock-panel">
+          <input id="shopUnlockCodeInput" maxlength="20" placeholder="特別なことば">
+          <button class="quiet" id="shopUnlockCodeButton">解放</button>
+          <p class="unlock-message" id="shopUnlockMessage"></p>
+        </div>
         <div id="shopList" class="shop-list"></div>
         <div class="shop-message" id="shopMessage">枝をあつめると、旅道具と交換できます。</div>
       </div>
@@ -951,6 +1040,19 @@
     const STORAGE_KEY = "shirotabi.save.v1";
     // デモ用は 0.1。実時間に戻す場合は 1 に変更する。
     const TIME_SCALE = 0.1;
+    const MUSEUM_UNLOCK_CODE = "tama2026";
+    const TAMA_MUSEUM_DESTINATION = {
+      id: "tama_museum",
+      name: "たましん美術館",
+      description: "立川にある、おおきな蜂の巣がある美術館",
+      distance: "far",
+      exclusive: true,
+      cardTexts: [
+        "エントランスに、おおきな蜂の巣がありました",
+        "蜂巣のたまりさんに、会いました",
+        "青海波の模様が、きれいでした"
+      ]
+    };
 
     const LUGGAGE = [
       {
@@ -1070,7 +1172,8 @@
       { id: "chawan", no: "12", name: "茶碗のまどか", original: "欠けた茶碗", place: "宿場町の茶屋", required: "風呂敷包み", luggageId: "furoshiki", line: "欠けたところにも、味があります", scene: "shops", note: "宿場町の茶屋で、茶碗が湯気を抱きました。" },
       { id: "kushi", no: "13", name: "櫛のゆい", original: "古い櫛", place: "城下町の小間物屋", required: "旅の地図", luggageId: "map", line: "もつれた日も、ほどきましょう", scene: "shops", note: "小間物屋の棚で、櫛が風を整えました。" },
       { id: "sensu", no: "14", name: "扇のあお", original: "古い扇", place: "川沿いの能舞台", required: "手ぬぐい", luggageId: "tenugui", line: "ひらけば、風景も舞います", scene: "river", note: "川沿いの能舞台で、扇が風を呼びました。" },
-      { id: "kanagu", no: "15", name: "刀装具のかなめ", original: "古い刀装具", place: "山中の廃社", required: "羅針盤", luggageId: "compass", line: "守る形にも、心があります", scene: "shrine", note: "山中の廃社で、金具が静かに光りました。" }
+      { id: "kanagu", no: "15", name: "刀装具のかなめ", original: "古い刀装具", place: "山中の廃社", required: "羅針盤", luggageId: "compass", line: "守る形にも、心があります", scene: "shrine", note: "山中の廃社で、金具が静かに光りました。" },
+      { id: "hachisu_tamari", no: "16", collabId: 16, name: "蜂巣のたまり", reading: "はちすのたまり", origin: "たましん美術館エントランスの巨大蜂巣オブジェ「たまりば」", original: "たましん美術館エントランスの巨大蜂巣オブジェ「たまりば」", location: "たましん美術館", place: "たましん美術館", requiredBaggage: "遠旅カテゴリ", required: "遠旅カテゴリ", luggageId: "museum_far", line: "ここはみんなの、たまり場ですよ", scene: "museum", note: "エントランスに、おおきな蜂の巣がありました。", rarity: "museum_exclusive", color: "#8B7355", accentColor: "#F5C842" }
     ];
 
     const INITIAL_STATE = {
@@ -1082,6 +1185,7 @@
       branches: 0,
       fineBranches: 0,
       photoBoxes: 0,
+      unlockedDestinations: [],
       pendingReturn: null
     };
 
@@ -1106,7 +1210,8 @@
         ...nextState,
         branches: Number(nextState.branches || 0),
         fineBranches: Number(nextState.fineBranches || 0),
-        photoBoxes: Number(nextState.photoBoxes || 0)
+        photoBoxes: Number(nextState.photoBoxes || 0),
+        unlockedDestinations: Array.isArray(nextState.unlockedDestinations) ? nextState.unlockedDestinations : []
       };
     }
 
@@ -1126,6 +1231,7 @@
 
     function init() {
       bindEvents();
+      processUrlUnlock();
       unlockLuggage();
       if (!state.dogName) {
         showScreen("nameScreen");
@@ -1146,6 +1252,7 @@
         saveState();
         showScreen("homeScreen");
       });
+      $("titleUnlockCodeButton").addEventListener("click", () => handleUnlockCode("titleUnlockCodeInput", "titleUnlockMessage"));
 
       $("goPrepButton").addEventListener("click", () => {
         if (!state.journey) showScreen("prepScreen");
@@ -1153,6 +1260,7 @@
       $("goCollectionButton").addEventListener("click", () => showScreen("collectionScreen"));
       $("goShopButton").addEventListener("click", () => showScreen("shopScreen"));
       $("goBranchGameButton").addEventListener("click", startBranchGame);
+      $("shopUnlockCodeButton").addEventListener("click", () => handleUnlockCode("shopUnlockCodeInput", "shopUnlockMessage"));
       $("leaveBranchGameButton").addEventListener("click", () => {
         stopBranchGame(false);
         showScreen("homeScreen");
@@ -1184,6 +1292,44 @@
         checkJourney();
         if ($("homeScreen").classList.contains("active")) renderHome();
       }, 1000);
+    }
+
+    function processUrlUnlock() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("unlock") === MUSEUM_UNLOCK_CODE) {
+        unlockDestination(TAMA_MUSEUM_DESTINATION.id);
+        history.replaceState(null, "", window.location.pathname);
+      }
+    }
+
+    function handleUnlockCode(inputId, messageId) {
+      const input = $(inputId);
+      const message = $(messageId);
+      const code = input.value.trim();
+      if (code !== MUSEUM_UNLOCK_CODE) {
+        message.textContent = "ことばが違うようです。";
+        return;
+      }
+      unlockDestination(TAMA_MUSEUM_DESTINATION.id);
+      input.value = "";
+      message.textContent = "たましん美術館への旅先がひらきました。";
+      if ($("prepScreen").classList.contains("active")) renderPrep();
+      if ($("collectionScreen").classList.contains("active")) renderCollection();
+    }
+
+    function unlockDestination(destinationId) {
+      if (!state.unlockedDestinations.includes(destinationId)) {
+        state.unlockedDestinations.push(destinationId);
+        saveState();
+      }
+    }
+
+    function isDestinationUnlocked(destinationId) {
+      return state.unlockedDestinations.includes(destinationId);
+    }
+
+    function isFarLuggage(item) {
+      return item.category === "遠旅の荷物" || ["compass", "tsuzura", "komonjo"].includes(item.id);
     }
 
     function renderHome() {
@@ -1266,6 +1412,7 @@
       selectedLuggage = null;
       $("departButton").disabled = true;
       $("luggageHint").textContent = "荷物を選ぶと、旅先の気配がわかります。";
+      renderMuseumDestinationHint();
       const list = $("luggageList");
       list.innerHTML = "";
       state.luggage
@@ -1286,6 +1433,15 @@
         });
     }
 
+    function renderMuseumDestinationHint() {
+      const unlocked = isDestinationUnlocked(TAMA_MUSEUM_DESTINATION.id);
+      const hint = $("museumDestinationHint");
+      hint.classList.toggle("locked", !unlocked);
+      hint.innerHTML = unlocked
+        ? `<strong>館限定旅先：${TAMA_MUSEUM_DESTINATION.name}</strong><span class="badge">★★★ 館限定</span><p class="small-note">${TAMA_MUSEUM_DESTINATION.description}。遠旅カテゴリの荷物で出会えるかもしれません。</p>`
+        : `<strong>ロック中：館限定旅先</strong><p class="small-note">？たましん美術館で出会えるかも。特別なことば、または館内QRで解放できます。</p>`;
+    }
+
     function selectLuggage(item, button) {
       selectedLuggage = item;
       document.querySelectorAll(".luggage-item").forEach((node) => node.classList.remove("selected"));
@@ -1296,7 +1452,11 @@
 
     function depart() {
       if (!selectedLuggage) return;
-      const destination = pick(selectedLuggage.destinations);
+      const destinations = [...selectedLuggage.destinations];
+      if (isDestinationUnlocked(TAMA_MUSEUM_DESTINATION.id) && isFarLuggage(selectedLuggage)) {
+        destinations.push(TAMA_MUSEUM_DESTINATION.name);
+      }
+      const destination = pick(destinations);
       const usePhotoBox = state.photoBoxes > 0;
       if (usePhotoBox) state.photoBoxes -= 1;
       state.journey = {
@@ -1319,7 +1479,7 @@
 
     function completeJourney() {
       const journey = state.journey;
-      const met = chooseTsukumo(journey.luggageId);
+      const met = chooseTsukumo(journey);
       const card = createCard(journey, met);
       const branchReward = createBranchReward();
       if (!state.collected.includes(met.id)) state.collected.push(met.id);
@@ -1352,7 +1512,11 @@
       };
     }
 
-    function chooseTsukumo(luggageId) {
+    function chooseTsukumo(journey) {
+      if (journey.destination === TAMA_MUSEUM_DESTINATION.name) {
+        return TSUKUMO.find((item) => item.id === "hachisu_tamari");
+      }
+      const luggageId = journey.luggageId;
       const mvpPool = TSUKUMO.filter((item) => ["waraji", "chochin", "takekago"].includes(item.id));
       const exact = mvpPool.filter((item) => item.luggageId === luggageId && !state.collected.includes(item.id));
       if (exact.length) return pick(exact);
@@ -1362,12 +1526,15 @@
     }
 
     function createCard(journey, tsukumo) {
+      const museumText = journey.destination === TAMA_MUSEUM_DESTINATION.name
+        ? pick(TAMA_MUSEUM_DESTINATION.cardTexts)
+        : null;
       return {
         id: `card-${Date.now()}`,
         date: new Date().toISOString(),
         dogName: state.dogName,
         place: journey.destination || tsukumo.place,
-        text: `${journey.destination || tsukumo.place}で、${tsukumo.original}の${tsukumo.name}に出会いました。`,
+        text: museumText || `${journey.destination || tsukumo.place}で、${tsukumo.original}の${tsukumo.name}に出会いました。`,
         scene: tsukumo.scene,
         title: `${state.dogName}の旅の記録`
       };
@@ -1503,13 +1670,15 @@
       panel.innerHTML = "";
       TSUKUMO.forEach((item) => {
         const found = state.collected.includes(item.id);
+        const museumLocked = item.rarity === "museum_exclusive" && !isDestinationUnlocked(TAMA_MUSEUM_DESTINATION.id);
         const button = document.createElement("button");
         button.className = `book-item ${found ? "" : "locked"}`;
         button.innerHTML = `
           <span class="tsukumo-icon ${found ? "" : "silhouette"}">${found ? tsukumoSvg(item.id) : "?"}</span>
           <span>
             <h3>${item.no} ${found ? item.name : "？？？"}</h3>
-            <p>${found ? `${item.original} / ${item.place}` : "まだ出会っていません"}</p>
+            ${item.rarity === "museum_exclusive" ? `<span class="badge">★★★ 館限定</span>` : ""}
+            <p>${found ? `${item.original} / ${item.place}` : museumLocked ? "？たましん美術館で出会えるかも" : "まだ出会っていません"}</p>
           </span>
         `;
         button.addEventListener("click", () => showTsukumoDetail(item, found));
@@ -1527,12 +1696,15 @@
     function showTsukumoDetail(item, found) {
       const panel = $("detailPanel");
       if (!found) {
-        panel.innerHTML = `<h3>未発見</h3><p>旅を重ねると、どこかで出会えるかもしれません。</p>`;
+        panel.innerHTML = item.rarity === "museum_exclusive"
+          ? `<h3>未発見</h3><span class="badge">★★★ 館限定</span><p>？たましん美術館で出会えるかも。特別なことばで旅先をひらくと、遠旅カテゴリの荷物で向かえるようになります。</p>`
+          : `<h3>未発見</h3><p>旅を重ねると、どこかで出会えるかもしれません。</p>`;
       } else {
         panel.innerHTML = `
           <h3>${item.name}</h3>
+          ${item.rarity === "museum_exclusive" ? `<span class="badge">★★★ 館限定</span>` : ""}
           <p>元の姿：${item.original}</p>
-          <p>出会った場所：${item.place}</p>
+          <p>出会った場所：${item.place}${item.rarity === "museum_exclusive" ? "で出会いました" : ""}</p>
           <p>必要な荷物：${item.required}</p>
           <p>「${item.line}」</p>
         `;
@@ -1608,6 +1780,28 @@
       }
       if (id === "takekago") {
         return `<svg ${common}><path d="M18 30h36l-5 28H23z" fill="#D9C69A" stroke="#2D2D2D" stroke-width="3"/><path d="M24 30c1-13 23-13 24 0M24 38h27M22 47h29M29 31l-3 26M38 31v27M47 31l-3 26" fill="none" stroke="#8C5F3D" stroke-width="3"/></svg>`;
+      }
+      if (id === "hachisu_tamari") {
+        return `<svg ${common}>
+          <defs>
+            <pattern id="seigaiha" width="14" height="10" patternUnits="userSpaceOnUse">
+              <path d="M0 10a7 7 0 0 1 14 0M-7 10a7 7 0 0 1 14 0M7 10a7 7 0 0 1 14 0" fill="none" stroke="#F5F0E8" stroke-width="1.4" opacity=".62"/>
+            </pattern>
+          </defs>
+          <path d="M13 57c0-23 10-41 23-41s23 18 23 41z" fill="#8B7355" stroke="#2D2D2D" stroke-width="3"/>
+          <path d="M13 57c0-23 10-41 23-41s23 18 23 41z" fill="url(#seigaiha)" opacity=".9"/>
+          <path d="M27 58V45c0-6 4-10 9-10s9 4 9 10v13z" fill="#2D2D2D" opacity=".82"/>
+          <g transform="translate(18 16) rotate(-14)">
+            <ellipse cx="8" cy="6" rx="5" ry="3" fill="#F5C842" stroke="#2D2D2D" stroke-width="1"/>
+            <path d="M4 6h8M8 3v6" stroke="#2D2D2D" stroke-width="1"/>
+            <ellipse cx="5" cy="2" rx="4" ry="2" fill="#DCE7EA" opacity=".7"/>
+          </g>
+          <g transform="translate(43 20) rotate(18)">
+            <ellipse cx="8" cy="6" rx="5" ry="3" fill="#F5C842" stroke="#2D2D2D" stroke-width="1"/>
+            <path d="M4 6h8M8 3v6" stroke="#2D2D2D" stroke-width="1"/>
+            <ellipse cx="5" cy="2" rx="4" ry="2" fill="#DCE7EA" opacity=".7"/>
+          </g>
+        </svg>`;
       }
       return `<svg ${common}><circle cx="36" cy="36" r="24" fill="#DCE7EA" stroke="#2D2D2D" stroke-width="3"/><path d="M24 39c6 7 18 7 24 0" fill="none" stroke="#2D2D2D" stroke-width="3"/><circle cx="28" cy="30" r="3"/><circle cx="44" cy="30" r="3"/></svg>`;
     }
