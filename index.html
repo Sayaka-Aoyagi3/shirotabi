@@ -438,6 +438,7 @@
     }
 
     .luggage-list,
+    .shop-list,
     .tsukumo-grid,
     .card-list {
       display: grid;
@@ -445,6 +446,7 @@
     }
 
     .luggage-item,
+    .shop-item,
     .book-item,
     .trip-card,
     .detail-box {
@@ -457,6 +459,15 @@
     .luggage-item {
       display: grid;
       grid-template-columns: 54px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      text-align: left;
+    }
+
+    .shop-item {
+      display: grid;
+      grid-template-columns: 54px 1fr auto;
       gap: 12px;
       align-items: center;
       padding: 12px;
@@ -479,6 +490,7 @@
     }
 
     .luggage-item h3,
+    .shop-item h3,
     .book-item h3,
     .detail-box h3 {
       margin: 0;
@@ -487,12 +499,32 @@
     }
 
     .luggage-item p,
+    .shop-item p,
     .book-item p,
     .detail-box p {
       margin: 4px 0 0;
       font-size: 12px;
       line-height: 1.65;
       color: rgba(45, 45, 45, 0.72);
+    }
+
+    .price {
+      display: grid;
+      gap: 4px;
+      min-width: 84px;
+      text-align: right;
+      color: var(--indigo);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .shop-message {
+      min-height: 44px;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      background: rgba(242, 215, 213, 0.34);
+      color: var(--indigo);
+      line-height: 1.7;
     }
 
     .hint {
@@ -857,6 +889,7 @@
       <div class="home-actions">
         <button class="primary" id="goPrepButton">旅に出す</button>
         <button class="secondary" id="goCollectionButton">コレクション帳</button>
+        <button class="quiet" id="goShopButton">おみせ</button>
         <button class="quiet" id="goBranchGameButton">こえだ探し</button>
       </div>
     </section>
@@ -907,6 +940,24 @@
         <p class="small-note">たまに見つかる藍色の枝は、りっぱな木のえだです。</p>
         <div class="branch-field" id="branchField" aria-label="こえだ探しの庭"></div>
         <div class="game-result" id="branchGameResult">枝を見つけたらタップしてください。</div>
+      </div>
+    </section>
+
+    <section id="shopScreen" class="screen">
+      <header class="topbar">
+        <button class="icon-button" data-nav="home" title="戻る">←</button>
+        <div>
+          <h1 class="brand">おみせ</h1>
+          <p class="sub">木のえだで旅支度をふやします</p>
+        </div>
+      </header>
+      <div class="sheet">
+        <div class="resource-row">
+          <span class="resource-pill" id="shopBranchCount">木のえだ 0本</span>
+          <span class="resource-pill" id="shopFineBranchCount">りっぱな木のえだ 0本</span>
+        </div>
+        <div id="shopList" class="shop-list"></div>
+        <div class="shop-message" id="shopMessage">枝をあつめると、旅道具と交換できます。</div>
       </div>
     </section>
 
@@ -995,6 +1046,49 @@
       }
     ];
 
+    const SHOP_ITEMS = [
+      {
+        id: "buy_goshuin",
+        name: "御朱印帳",
+        description: "名刹や山中の社へ行きやすくなる旅道具です。",
+        branchCost: 12,
+        fineBranchCost: 0,
+        type: "luggage",
+        luggageId: "goshuin",
+        icon: "冊"
+      },
+      {
+        id: "buy_map",
+        name: "旅の地図",
+        description: "古刹や宿場町への道が見えてきます。",
+        branchCost: 18,
+        fineBranchCost: 0,
+        type: "luggage",
+        luggageId: "map",
+        icon: "〽"
+      },
+      {
+        id: "buy_photo_box",
+        name: "写真の小箱",
+        description: "次の旅で、写真カードがもう1枚届きます。",
+        branchCost: 20,
+        fineBranchCost: 0,
+        type: "consumable",
+        stateKey: "photoBoxes",
+        icon: "□"
+      },
+      {
+        id: "buy_compass",
+        name: "羅針盤",
+        description: "遠旅の入り口になる、少し特別な旅道具です。",
+        branchCost: 35,
+        fineBranchCost: 1,
+        type: "luggage",
+        luggageId: "compass",
+        icon: "◎"
+      }
+    ];
+
     const TSUKUMO = [
       { id: "waraji", no: "01", name: "草鞋のゑもん", original: "古い草鞋", place: "街道筋", required: "おにぎり", luggageId: "onigiri", line: "どこへでも、おともしますよ", scene: "river", note: "街道筋で、ふるい草鞋と歩きました。" },
       { id: "chochin", no: "02", name: "提灯のひかり", original: "古い提灯", place: "古い商店街", required: "手ぬぐい", luggageId: "tenugui", line: "暗い道も、こわくないよ", scene: "shops", note: "古い商店街で、やさしい灯りに会いました。" },
@@ -1021,6 +1115,7 @@
       cards: [],
       branches: 0,
       fineBranches: 0,
+      photoBoxes: 0,
       pendingReturn: null
     };
 
@@ -1044,7 +1139,8 @@
       return {
         ...nextState,
         branches: Number(nextState.branches || 0),
-        fineBranches: Number(nextState.fineBranches || 0)
+        fineBranches: Number(nextState.fineBranches || 0),
+        photoBoxes: Number(nextState.photoBoxes || 0)
       };
     }
 
@@ -1058,6 +1154,7 @@
       if (id === "homeScreen") renderHome();
       if (id === "prepScreen") renderPrep();
       if (id === "branchGameScreen") renderBranchGame();
+      if (id === "shopScreen") renderShop();
       if (id === "collectionScreen") renderCollection();
     }
 
@@ -1088,6 +1185,7 @@
         if (!state.journey) showScreen("prepScreen");
       });
       $("goCollectionButton").addEventListener("click", () => showScreen("collectionScreen"));
+      $("goShopButton").addEventListener("click", () => showScreen("shopScreen"));
       $("goBranchGameButton").addEventListener("click", startBranchGame);
       $("leaveBranchGameButton").addEventListener("click", () => {
         stopBranchGame(false);
@@ -1148,6 +1246,56 @@
       $("fineBranchCount").textContent = `りっぱな木のえだ ${state.fineBranches}本`;
     }
 
+    function renderShop() {
+      $("shopBranchCount").textContent = `木のえだ ${state.branches}本`;
+      $("shopFineBranchCount").textContent = `りっぱな木のえだ ${state.fineBranches}本`;
+      const list = $("shopList");
+      list.innerHTML = "";
+      SHOP_ITEMS.forEach((item) => {
+        const owned = item.type === "luggage" && state.luggage.includes(item.luggageId);
+        const canBuy = !owned && state.branches >= item.branchCost && state.fineBranches >= item.fineBranchCost;
+        const button = document.createElement("button");
+        button.className = "shop-item";
+        button.disabled = owned || !canBuy;
+        button.innerHTML = `
+          <span class="luggage-icon">${item.icon}</span>
+          <span>
+            <h3>${item.name}</h3>
+            <p>${item.description}</p>
+            ${item.type === "consumable" ? `<p>所持：${state[item.stateKey]}個</p>` : ""}
+          </span>
+          <span class="price">
+            <span>木のえだ ${item.branchCost}</span>
+            ${item.fineBranchCost ? `<span>りっぱ ${item.fineBranchCost}</span>` : ""}
+            <span>${owned ? "所持済み" : canBuy ? "交換" : "不足"}</span>
+          </span>
+        `;
+        button.addEventListener("click", () => buyShopItem(item));
+        list.appendChild(button);
+      });
+    }
+
+    function buyShopItem(item) {
+      const owned = item.type === "luggage" && state.luggage.includes(item.luggageId);
+      if (owned) return;
+      if (state.branches < item.branchCost || state.fineBranches < item.fineBranchCost) {
+        $("shopMessage").textContent = "木のえだがまだ足りません。こえだ探しや旅のおみやげで集めましょう。";
+        return;
+      }
+      state.branches -= item.branchCost;
+      state.fineBranches -= item.fineBranchCost;
+      if (item.type === "luggage") {
+        state.luggage.push(item.luggageId);
+        $("shopMessage").textContent = `${item.name}を旅支度に加えました。`;
+      } else {
+        state[item.stateKey] += 1;
+        $("shopMessage").textContent = `${item.name}を受け取りました。次の旅で使えます。`;
+      }
+      saveState();
+      renderShop();
+      renderResources();
+    }
+
     function renderPrep() {
       selectedLuggage = null;
       $("departButton").disabled = true;
@@ -1183,10 +1331,13 @@
     function depart() {
       if (!selectedLuggage) return;
       const destination = pick(selectedLuggage.destinations);
+      const usePhotoBox = state.photoBoxes > 0;
+      if (usePhotoBox) state.photoBoxes -= 1;
       state.journey = {
         luggageId: selectedLuggage.id,
         luggageName: selectedLuggage.name,
         destination,
+        photoBox: usePhotoBox,
         startedAt: Date.now(),
         durationMs: selectedLuggage.durationMinutes * 60 * 1000 * TIME_SCALE
       };
@@ -1207,12 +1358,18 @@
       const branchReward = createBranchReward();
       if (!state.collected.includes(met.id)) state.collected.push(met.id);
       state.cards.unshift(card);
+      let extraCard = null;
+      if (journey.photoBox) {
+        extraCard = createExtraCard(journey, met);
+        state.cards.unshift(extraCard);
+      }
       state.branches += branchReward.branches;
       state.fineBranches += branchReward.fineBranches;
       state.pendingReturn = {
         journey,
         tsukumoId: met.id,
         cardId: card.id,
+        extraCardId: extraCard ? extraCard.id : null,
         branchReward
       };
       state.journey = null;
@@ -1250,12 +1407,25 @@
       };
     }
 
+    function createExtraCard(journey, tsukumo) {
+      return {
+        id: `card-extra-${Date.now()}`,
+        date: new Date().toISOString(),
+        dogName: state.dogName,
+        place: journey.destination || tsukumo.place,
+        text: `写真の小箱から、${tsukumo.name}との別の一枚が見つかりました。`,
+        scene: tsukumo.scene,
+        title: `${state.dogName}の旅の記録`
+      };
+    }
+
     function renderReturn() {
       const pending = state.pendingReturn;
       if (!pending) return;
       const journey = pending.journey;
       const tsukumo = TSUKUMO.find((item) => item.id === pending.tsukumoId);
       const card = state.cards.find((item) => item.id === pending.cardId);
+      const extraCard = pending.extraCardId ? state.cards.find((item) => item.id === pending.extraCardId) : null;
       const branchReward = pending.branchReward || { branches: 0, fineBranches: 0 };
       $("returnSummary").textContent = `${journey.luggageName}を持って、${journey.destination}に行ってきました。`;
       $("returnTsukumo").innerHTML = `
@@ -1264,7 +1434,7 @@
         <p>「${tsukumo.line}」</p>
         <p class="small-note">木のえだを${branchReward.branches}本くわえて帰ってきました。</p>
       `;
-      $("returnCard").innerHTML = card ? cardHtml(card) : "";
+      $("returnCard").innerHTML = [extraCard, card].filter(Boolean).map(cardHtml).join("");
     }
 
     function receiveReturn() {
