@@ -1,0 +1,1226 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>しろたび</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1A3A5C">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="しろたび">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #F5F0E8;
+      --ink: #2D2D2D;
+      --vermilion: #C0392B;
+      --indigo: #1A3A5C;
+      --sakura: #F2D7D5;
+      --wood: #8C5F3D;
+      --straw: #D9C69A;
+      --mist: #DCE7EA;
+      --shadow: rgba(45, 45, 45, 0.16);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(242, 215, 213, 0.5), rgba(220, 231, 234, 0.55)),
+        var(--paper);
+      font-family: "Noto Serif JP", serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    .app {
+      position: relative;
+      width: min(100vw, 430px);
+      min-height: 100vh;
+      margin: 0 auto;
+      overflow: hidden;
+      background: var(--paper);
+      box-shadow: 0 0 30px rgba(45, 45, 45, 0.12);
+    }
+
+    .screen {
+      display: none;
+      min-height: 100vh;
+      padding: 18px;
+    }
+
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 44px;
+      gap: 12px;
+    }
+
+    .brand {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--indigo);
+    }
+
+    .sub {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: rgba(45, 45, 45, 0.72);
+    }
+
+    .icon-button {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      color: var(--paper);
+      background: var(--indigo);
+      box-shadow: 0 4px 10px var(--shadow);
+    }
+
+    .primary,
+    .secondary,
+    .quiet {
+      min-height: 46px;
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-weight: 700;
+      transition: transform 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
+    }
+
+    .primary {
+      color: #fff;
+      background: var(--vermilion);
+      box-shadow: 0 8px 18px rgba(192, 57, 43, 0.25);
+    }
+
+    .secondary {
+      color: var(--paper);
+      background: var(--indigo);
+      box-shadow: 0 8px 18px rgba(26, 58, 92, 0.2);
+    }
+
+    .quiet {
+      color: var(--indigo);
+      background: rgba(26, 58, 92, 0.08);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      box-shadow: none;
+    }
+
+    button:not(:disabled):active {
+      transform: translateY(1px);
+    }
+
+    .name-screen {
+      justify-content: center;
+      gap: 18px;
+      background:
+        linear-gradient(rgba(245, 240, 232, 0.86), rgba(245, 240, 232, 0.92)),
+        repeating-linear-gradient(90deg, rgba(140, 95, 61, 0.08) 0 18px, transparent 18px 38px);
+    }
+
+    .name-panel {
+      display: grid;
+      gap: 14px;
+      padding: 24px 18px;
+      border: 1px solid rgba(45, 45, 45, 0.1);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.46);
+      box-shadow: 0 12px 28px var(--shadow);
+    }
+
+    .name-panel h1 {
+      margin: 0;
+      font-size: 28px;
+      color: var(--indigo);
+    }
+
+    .name-panel p {
+      margin: 0;
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .name-panel input {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid rgba(45, 45, 45, 0.18);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      background: #fffdf9;
+      color: var(--ink);
+      font-size: 16px;
+    }
+
+    .genkan {
+      position: relative;
+      flex: 1;
+      min-height: 520px;
+      margin: 14px -18px 0;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(245, 240, 232, 0.88) 0 43%, transparent 43%),
+        linear-gradient(90deg, rgba(140, 95, 61, 0.16) 0 8px, transparent 8px 24px),
+        var(--paper);
+    }
+
+    .beam {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 18px;
+      background: var(--wood);
+      box-shadow: 0 4px 8px rgba(45, 45, 45, 0.12);
+    }
+
+    .beam.top {
+      top: 92px;
+    }
+
+    .beam.bottom {
+      top: 392px;
+    }
+
+    .door {
+      position: absolute;
+      left: 28px;
+      right: 28px;
+      top: 110px;
+      height: 280px;
+      border: 10px solid var(--wood);
+      background:
+        linear-gradient(90deg, transparent 49%, rgba(140, 95, 61, 0.38) 49% 51%, transparent 51%),
+        linear-gradient(180deg, rgba(220, 231, 234, 0.9), rgba(245, 240, 232, 0.72));
+    }
+
+    .paper-grid {
+      position: absolute;
+      inset: 16px;
+      background:
+        linear-gradient(var(--wood), var(--wood)) 50% 0 / 5px 100% no-repeat,
+        linear-gradient(var(--wood), var(--wood)) 0 34% / 100% 4px no-repeat,
+        linear-gradient(var(--wood), var(--wood)) 0 68% / 100% 4px no-repeat;
+      opacity: 0.6;
+    }
+
+    .doma {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 190px;
+      background:
+        radial-gradient(ellipse at 25% 75%, rgba(45, 45, 45, 0.08), transparent 36%),
+        linear-gradient(180deg, #B69B7D, #806753);
+    }
+
+    .status-panel {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      top: 18px;
+      z-index: 3;
+      display: grid;
+      gap: 4px;
+      padding: 12px;
+      border-radius: var(--radius);
+      background: rgba(255, 253, 249, 0.78);
+      border: 1px solid rgba(45, 45, 45, 0.1);
+      backdrop-filter: blur(4px);
+    }
+
+    .status-panel strong {
+      color: var(--indigo);
+    }
+
+    .dog-wrap {
+      position: absolute;
+      left: 50%;
+      bottom: 112px;
+      z-index: 4;
+      width: 148px;
+      height: 150px;
+      transform: translateX(-50%);
+      transition: transform 500ms ease, opacity 400ms ease;
+    }
+
+    .dog-wrap.away {
+      opacity: 0.16;
+      transform: translateX(-50%) translateY(28px) scale(0.9);
+    }
+
+    .dog {
+      position: absolute;
+      left: 22px;
+      bottom: 0;
+      width: 104px;
+      height: 92px;
+      border: 3px solid var(--ink);
+      border-radius: 50% 50% 42% 42%;
+      background: #fffdf9;
+      box-shadow: 0 12px 20px rgba(45, 45, 45, 0.14);
+    }
+
+    .dog::before,
+    .dog::after {
+      content: "";
+      position: absolute;
+      top: -22px;
+      width: 34px;
+      height: 50px;
+      border: 3px solid var(--ink);
+      background: #fffdf9;
+      border-radius: 60% 60% 70% 40%;
+      transform-origin: bottom center;
+    }
+
+    .dog::before {
+      left: 3px;
+      transform: rotate(-24deg);
+    }
+
+    .dog::after {
+      right: 3px;
+      transform: rotate(24deg) scaleX(-1);
+    }
+
+    .face {
+      position: absolute;
+      left: 18px;
+      top: 30px;
+      width: 68px;
+      height: 36px;
+    }
+
+    .eye {
+      position: absolute;
+      top: 0;
+      width: 8px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--ink);
+    }
+
+    .eye.left {
+      left: 8px;
+    }
+
+    .eye.right {
+      right: 8px;
+    }
+
+    .nose {
+      position: absolute;
+      left: 29px;
+      top: 13px;
+      width: 10px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--ink);
+    }
+
+    .mouth {
+      position: absolute;
+      left: 28px;
+      top: 21px;
+      width: 12px;
+      height: 8px;
+      border-bottom: 2px solid var(--ink);
+      border-radius: 50%;
+    }
+
+    .tail {
+      position: absolute;
+      right: 2px;
+      bottom: 36px;
+      width: 38px;
+      height: 30px;
+      border: 8px solid #fffdf9;
+      border-left-color: transparent;
+      border-bottom-color: transparent;
+      border-radius: 50%;
+      filter: drop-shadow(0 0 0 var(--ink));
+      transform: rotate(18deg);
+    }
+
+    .speech {
+      position: absolute;
+      left: 50%;
+      bottom: 275px;
+      z-index: 5;
+      min-width: 118px;
+      padding: 8px 12px;
+      border-radius: 18px;
+      color: var(--indigo);
+      background: #fffdf9;
+      box-shadow: 0 8px 18px var(--shadow);
+      text-align: center;
+      opacity: 0;
+      transform: translateX(-50%) translateY(8px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      pointer-events: none;
+    }
+
+    .speech.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .home-actions {
+      position: relative;
+      z-index: 6;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: -74px;
+    }
+
+    .sheet {
+      display: grid;
+      gap: 12px;
+      padding-top: 12px;
+    }
+
+    .luggage-list,
+    .tsukumo-grid,
+    .card-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .luggage-item,
+    .book-item,
+    .trip-card,
+    .detail-box {
+      border: 1px solid rgba(45, 45, 45, 0.12);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 249, 0.76);
+      box-shadow: 0 8px 18px rgba(45, 45, 45, 0.08);
+    }
+
+    .luggage-item {
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      text-align: left;
+    }
+
+    .luggage-item.selected {
+      outline: 3px solid rgba(192, 57, 43, 0.28);
+      background: #fff8f2;
+    }
+
+    .luggage-icon,
+    .tsukumo-icon {
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: var(--mist);
+    }
+
+    .luggage-item h3,
+    .book-item h3,
+    .detail-box h3 {
+      margin: 0;
+      font-size: 16px;
+      color: var(--indigo);
+    }
+
+    .luggage-item p,
+    .book-item p,
+    .detail-box p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      line-height: 1.65;
+      color: rgba(45, 45, 45, 0.72);
+    }
+
+    .hint {
+      min-height: 78px;
+      padding: 12px;
+      border-left: 4px solid var(--vermilion);
+      border-radius: var(--radius);
+      background: rgba(242, 215, 213, 0.42);
+      line-height: 1.7;
+    }
+
+    .return-stage {
+      display: grid;
+      place-items: center;
+      gap: 14px;
+      flex: 1;
+      text-align: center;
+    }
+
+    .return-dog {
+      position: relative;
+      width: 148px;
+      height: 150px;
+      animation: hopIn 900ms ease both;
+    }
+
+    @keyframes hopIn {
+      0% { opacity: 0; transform: translateX(-90px) translateY(32px); }
+      65% { opacity: 1; transform: translateX(8px) translateY(-8px); }
+      100% { opacity: 1; transform: translateX(0) translateY(0); }
+    }
+
+    .reveal {
+      animation: floatIn 650ms ease both;
+    }
+
+    @keyframes floatIn {
+      from { opacity: 0; transform: translateY(18px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .tsukumo-figure {
+      display: grid;
+      place-items: center;
+      width: 112px;
+      height: 112px;
+      margin: 0 auto;
+      border-radius: 50%;
+      background: rgba(220, 231, 234, 0.72);
+      color: var(--indigo);
+    }
+
+    .book-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .tab {
+      min-height: 40px;
+      border-radius: var(--radius);
+      background: rgba(26, 58, 92, 0.08);
+      color: var(--indigo);
+      font-weight: 700;
+    }
+
+    .tab.active {
+      background: var(--indigo);
+      color: var(--paper);
+    }
+
+    .book-item {
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      text-align: left;
+    }
+
+    .book-item.locked {
+      filter: grayscale(1);
+      opacity: 0.55;
+    }
+
+    .silhouette {
+      color: transparent;
+      background: #4a4a4a;
+      border-radius: 50%;
+    }
+
+    .detail-box {
+      padding: 12px;
+    }
+
+    .trip-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 248px;
+      padding: 14px;
+      background:
+        linear-gradient(145deg, rgba(221, 197, 151, 0.52), rgba(220, 231, 234, 0.72)),
+        #fffdf9;
+    }
+
+    .trip-card::before {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border: 1px solid rgba(45, 45, 45, 0.14);
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    .trip-card h3 {
+      position: relative;
+      margin: 0 0 10px;
+      color: var(--indigo);
+      font-size: 18px;
+      text-align: center;
+    }
+
+    .scene {
+      position: relative;
+      height: 118px;
+      margin: 0 0 10px;
+      overflow: hidden;
+      border-radius: 6px;
+      background: linear-gradient(#DCE7EA 0 58%, #D9C69A 58%);
+    }
+
+    .scene.shrine::before {
+      content: "";
+      position: absolute;
+      left: 98px;
+      top: 24px;
+      width: 44px;
+      height: 56px;
+      background: var(--vermilion);
+      clip-path: polygon(50% 0, 100% 30%, 86% 30%, 86% 100%, 14% 100%, 14% 30%, 0 30%);
+    }
+
+    .scene.shrine::after {
+      content: "";
+      position: absolute;
+      left: 84px;
+      top: 18px;
+      width: 72px;
+      height: 10px;
+      background: var(--ink);
+      box-shadow: 0 44px 0 rgba(45, 45, 45, 0.18);
+    }
+
+    .scene.shops::before {
+      content: "";
+      position: absolute;
+      left: 40px;
+      top: 38px;
+      width: 172px;
+      height: 54px;
+      background:
+        linear-gradient(90deg, rgba(192, 57, 43, 0.78) 0 24%, transparent 24% 33%, rgba(26, 58, 92, 0.72) 33% 58%, transparent 58% 67%, rgba(140, 95, 61, 0.7) 67%),
+        #fffdf9;
+      border: 3px solid var(--wood);
+    }
+
+    .scene.shops::after {
+      content: "";
+      position: absolute;
+      left: 31px;
+      top: 28px;
+      width: 190px;
+      height: 18px;
+      background: repeating-linear-gradient(90deg, var(--vermilion) 0 18px, #fffdf9 18px 36px);
+      border: 2px solid var(--wood);
+    }
+
+    .scene.river::before {
+      content: "";
+      position: absolute;
+      left: -20px;
+      right: -20px;
+      bottom: 20px;
+      height: 34px;
+      background: rgba(26, 58, 92, 0.44);
+      transform: rotate(-5deg);
+    }
+
+    .scene.river::after {
+      content: "";
+      position: absolute;
+      left: 36px;
+      bottom: 66px;
+      width: 168px;
+      height: 16px;
+      border-top: 4px solid var(--wood);
+      border-bottom: 4px solid var(--wood);
+    }
+
+    .trip-card p {
+      position: relative;
+      margin: 0;
+      line-height: 1.7;
+      font-size: 13px;
+    }
+
+    .small-note {
+      margin: 0;
+      color: rgba(45, 45, 45, 0.7);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    svg {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="nameScreen" class="screen name-screen">
+      <div class="name-panel">
+        <div class="dog-wrap" aria-hidden="true" style="position:relative; left:auto; bottom:auto; transform:none; margin:0 auto;">
+          <div class="tail"></div>
+          <div class="dog"><div class="face"><span class="eye left"></span><span class="eye right"></span><span class="nose"></span><span class="mouth"></span></div></div>
+        </div>
+        <h1>しろたび</h1>
+        <p>旅好きの白い犬に、名前をつけてください。</p>
+        <input id="dogNameInput" maxlength="10" placeholder="例：しろ、もち、こはく">
+        <button class="primary" id="startGameButton">決定</button>
+      </div>
+    </section>
+
+    <section id="homeScreen" class="screen">
+      <header class="topbar">
+        <div>
+          <h1 class="brand">しろたび</h1>
+          <p class="sub" id="homeSubtitle">白い犬の旅支度</p>
+        </div>
+        <button class="icon-button" id="resetButton" title="最初から">↺</button>
+      </header>
+
+      <div class="genkan">
+        <div class="status-panel">
+          <strong id="statusTitle">玄関でひと休み</strong>
+          <span id="statusText">旅の準備ができます。</span>
+        </div>
+        <div class="beam top"></div>
+        <div class="door"><div class="paper-grid"></div></div>
+        <div class="beam bottom"></div>
+        <div class="doma"></div>
+        <button class="dog-wrap" id="dogButton" title="犬をなでる" aria-label="犬をなでる">
+          <div class="tail"></div>
+          <div class="dog"><div class="face"><span class="eye left"></span><span class="eye right"></span><span class="nose"></span><span class="mouth"></span></div></div>
+        </button>
+        <div class="speech" id="dogSpeech">ただいま</div>
+      </div>
+
+      <div class="home-actions">
+        <button class="primary" id="goPrepButton">旅に出す</button>
+        <button class="secondary" id="goCollectionButton">コレクション帳</button>
+      </div>
+    </section>
+
+    <section id="prepScreen" class="screen">
+      <header class="topbar">
+        <button class="icon-button" data-nav="home" title="戻る">←</button>
+        <div>
+          <h1 class="brand">旅支度</h1>
+          <p class="sub">荷物をひとつ選びます</p>
+        </div>
+      </header>
+      <div class="sheet">
+        <div id="luggageList" class="luggage-list"></div>
+        <div class="hint" id="luggageHint">荷物を選ぶと、旅先の気配がわかります。</div>
+        <button class="primary" id="departButton" disabled>行ってらっしゃい</button>
+        <p class="small-note">デモでは旅時間を1/10に短縮しています。実時間に戻す場合は JavaScript の <code>TIME_SCALE</code> を <code>1</code> にしてください。</p>
+      </div>
+    </section>
+
+    <section id="returnScreen" class="screen">
+      <div class="return-stage">
+        <div class="return-dog">
+          <div class="tail"></div>
+          <div class="dog"><div class="face"><span class="eye left"></span><span class="eye right"></span><span class="nose"></span><span class="mouth"></span></div></div>
+        </div>
+        <h1 class="brand">おかえり</h1>
+        <p id="returnSummary"></p>
+        <div id="returnTsukumo" class="reveal"></div>
+        <div id="returnCard" class="reveal"></div>
+        <button class="primary" id="receiveButton">受け取る</button>
+      </div>
+    </section>
+
+    <section id="collectionScreen" class="screen">
+      <header class="topbar">
+        <button class="icon-button" data-nav="home" title="戻る">←</button>
+        <div>
+          <h1 class="brand">コレクション帳</h1>
+          <p class="sub" id="collectionCount">集めた付喪神</p>
+        </div>
+      </header>
+      <div class="sheet">
+        <div class="book-tabs">
+          <button class="tab active" id="tsukumoTab">付喪神</button>
+          <button class="tab" id="cardsTab">旅の記録</button>
+        </div>
+        <div id="tsukumoPanel" class="tsukumo-grid"></div>
+        <div id="cardsPanel" class="card-list hidden"></div>
+        <div id="detailPanel" class="detail-box hidden"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "shirotabi.save.v1";
+    // デモ用は 0.1。実時間に戻す場合は 1 に変更する。
+    const TIME_SCALE = 0.1;
+
+    const LUGGAGE = [
+      {
+        id: "onigiri",
+        name: "おにぎり",
+        category: "近場の荷物",
+        durationMinutes: 2,
+        destinations: ["近所の神社", "川沿いの道", "街道筋"],
+        hint: "近所の神社や川沿いの道へ。身近な古道具の気配があります。",
+        icon: "飯"
+      },
+      {
+        id: "tenugui",
+        name: "手ぬぐい",
+        category: "近場の荷物",
+        durationMinutes: 2,
+        destinations: ["古い商店街", "近所の神社", "川沿いの道"],
+        hint: "古い商店街へ向かいやすい荷物。灯りや竹かごの気配があります。",
+        icon: "□"
+      },
+      {
+        id: "furoshiki",
+        name: "風呂敷包み",
+        category: "中距離の荷物",
+        durationMinutes: 5,
+        destinations: ["城下町の蔵", "宿場町", "古刹・名刹"],
+        hint: "少し遠くの城下町へ。MVPでは近場の付喪神が見つかることがあります。",
+        icon: "◇"
+      },
+      {
+        id: "goshuin",
+        name: "御朱印帳",
+        category: "中距離の荷物",
+        durationMinutes: 5,
+        destinations: ["名刹", "山中の社"],
+        hint: "名刹や山中の社に縁ができます。",
+        icon: "冊",
+        unlockAt: 3
+      },
+      {
+        id: "map",
+        name: "旅の地図",
+        category: "中距離の荷物",
+        durationMinutes: 5,
+        destinations: ["古刹の境内", "宿場町"],
+        hint: "香の残る古刹へ向かう道が見えてきます。",
+        icon: "〽",
+        unlockAt: 5
+      },
+      {
+        id: "compass",
+        name: "羅針盤",
+        category: "遠旅の荷物",
+        durationMinutes: 10,
+        destinations: ["海辺の港", "遠国の市"],
+        hint: "遠旅の入り口。海辺や遠国へ向かいます。",
+        icon: "◎",
+        unlockAt: 9
+      }
+    ];
+
+    const TSUKUMO = [
+      { id: "waraji", no: "01", name: "草鞋のゑもん", original: "古い草鞋", place: "街道筋", required: "おにぎり", luggageId: "onigiri", line: "どこへでも、おともしますよ", scene: "river", note: "街道筋で、ふるい草鞋と歩きました。" },
+      { id: "chochin", no: "02", name: "提灯のひかり", original: "古い提灯", place: "古い商店街", required: "手ぬぐい", luggageId: "tenugui", line: "暗い道も、こわくないよ", scene: "shops", note: "古い商店街で、やさしい灯りに会いました。" },
+      { id: "takekago", no: "03", name: "竹かごのこえだ", original: "古い竹かご", place: "川沿いの道", required: "おにぎり", luggageId: "onigiri", line: "小さなものほど、大事に運びます", scene: "river", note: "川沿いの道で、竹かごがからりと笑いました。" },
+      { id: "goshuincho", no: "04", name: "御朱印帳のしずか", original: "古い御朱印帳", place: "名刹", required: "御朱印帳", luggageId: "goshuin", line: "縁は、こうして積み重なるもの", scene: "shrine", note: "名刹の石段で、紙の記憶が開きました。" },
+      { id: "shokudai", no: "05", name: "燭台のともし", original: "古い燭台", place: "城下町の蔵", required: "風呂敷包み", luggageId: "furoshiki", line: "静かに、照らしましょう", scene: "shops", note: "古い蔵の奥に、ともし火がありました。" },
+      { id: "koro", no: "06", name: "香炉のけむり", original: "古い香炉", place: "古刹の境内", required: "旅の地図", luggageId: "map", line: "においは、記憶を呼びます", scene: "shrine", note: "古刹の境内で、香の記憶がほどけました。" },
+      { id: "suzu", no: "07", name: "鈴のりん", original: "神社の古鈴", place: "山中の社", required: "御朱印帳", luggageId: "goshuin", line: "呼べば、きっと聞こえます", scene: "shrine", note: "山中の社で、鈴の音が返事をしました。" },
+      { id: "makimono", no: "08", name: "巻物のふみ", original: "古い巻物", place: "廃社の蔵", required: "古文書の束", luggageId: "komonjo", line: "読まれなくても、覚えています", scene: "shrine", note: "廃社の蔵で、巻物が昔話を聞かせました。" },
+      { id: "kagami", no: "09", name: "鏡のかがみ", original: "古い銅鏡", place: "海辺の港", required: "羅針盤", luggageId: "compass", line: "映るものは、すべて真実", scene: "river", note: "海辺の港で、銅鏡が朝日を映しました。" },
+      { id: "tsuzura", no: "10", name: "葛籠のいれこ", original: "古い葛籠", place: "遠国の市", required: "大きな葛籠", luggageId: "tsuzura", line: "何でも入ります、何でも", scene: "shops", note: "遠国の市で、葛籠が市の音をしまいました。" },
+      { id: "suzuri", no: "11", name: "硯のすみ", original: "古い硯", place: "書院の縁側", required: "古文書の束", luggageId: "komonjo", line: "墨は乾いても、言葉は残る", scene: "shrine", note: "書院の縁側で、古い硯が空を磨きました。" },
+      { id: "chawan", no: "12", name: "茶碗のまどか", original: "欠けた茶碗", place: "宿場町の茶屋", required: "風呂敷包み", luggageId: "furoshiki", line: "欠けたところにも、味があります", scene: "shops", note: "宿場町の茶屋で、茶碗が湯気を抱きました。" },
+      { id: "kushi", no: "13", name: "櫛のゆい", original: "古い櫛", place: "城下町の小間物屋", required: "旅の地図", luggageId: "map", line: "もつれた日も、ほどきましょう", scene: "shops", note: "小間物屋の棚で、櫛が風を整えました。" },
+      { id: "sensu", no: "14", name: "扇のあお", original: "古い扇", place: "川沿いの能舞台", required: "手ぬぐい", luggageId: "tenugui", line: "ひらけば、風景も舞います", scene: "river", note: "川沿いの能舞台で、扇が風を呼びました。" },
+      { id: "kanagu", no: "15", name: "刀装具のかなめ", original: "古い刀装具", place: "山中の廃社", required: "羅針盤", luggageId: "compass", line: "守る形にも、心があります", scene: "shrine", note: "山中の廃社で、金具が静かに光りました。" }
+    ];
+
+    const INITIAL_STATE = {
+      dogName: "",
+      luggage: ["onigiri", "tenugui", "furoshiki"],
+      journey: null,
+      collected: [],
+      cards: [],
+      pendingReturn: null
+    };
+
+    let state = loadState();
+    let selectedLuggage = null;
+    let timerId = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? { ...INITIAL_STATE, ...JSON.parse(raw) } : { ...INITIAL_STATE };
+      } catch {
+        return { ...INITIAL_STATE };
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function showScreen(id) {
+      document.querySelectorAll(".screen").forEach((screen) => screen.classList.remove("active"));
+      $(id).classList.add("active");
+      if (id === "homeScreen") renderHome();
+      if (id === "prepScreen") renderPrep();
+      if (id === "collectionScreen") renderCollection();
+    }
+
+    function init() {
+      bindEvents();
+      unlockLuggage();
+      if (!state.dogName) {
+        showScreen("nameScreen");
+      } else if (state.pendingReturn) {
+        renderReturn();
+        showScreen("returnScreen");
+      } else {
+        showScreen("homeScreen");
+      }
+      startTicker();
+    }
+
+    function bindEvents() {
+      $("startGameButton").addEventListener("click", () => {
+        const name = $("dogNameInput").value.trim();
+        if (!name) return;
+        state.dogName = name;
+        saveState();
+        showScreen("homeScreen");
+      });
+
+      $("goPrepButton").addEventListener("click", () => {
+        if (!state.journey) showScreen("prepScreen");
+      });
+      $("goCollectionButton").addEventListener("click", () => showScreen("collectionScreen"));
+      document.querySelectorAll("[data-nav='home']").forEach((button) => {
+        button.addEventListener("click", () => showScreen("homeScreen"));
+      });
+      $("dogButton").addEventListener("click", showDogSpeech);
+      $("departButton").addEventListener("click", depart);
+      $("receiveButton").addEventListener("click", receiveReturn);
+      $("tsukumoTab").addEventListener("click", () => switchCollectionTab("tsukumo"));
+      $("cardsTab").addEventListener("click", () => switchCollectionTab("cards"));
+      $("resetButton").addEventListener("click", () => {
+        if (!confirm("最初からやり直しますか？")) return;
+        localStorage.removeItem(STORAGE_KEY);
+        state = { ...INITIAL_STATE };
+        selectedLuggage = null;
+        showScreen("nameScreen");
+      });
+    }
+
+    function startTicker() {
+      clearInterval(timerId);
+      timerId = setInterval(() => {
+        checkJourney();
+        if ($("homeScreen").classList.contains("active")) renderHome();
+      }, 1000);
+    }
+
+    function renderHome() {
+      unlockLuggage();
+      const dog = $("dogButton");
+      $("homeSubtitle").textContent = `${state.dogName}の玄関`;
+      if (state.journey) {
+        const remaining = getRemainingMs(state.journey);
+        dog.classList.add("away");
+        $("statusTitle").textContent = "るすばん中...";
+        $("statusText").textContent = remaining > 0
+          ? `帰宅まであと ${formatRemaining(remaining)}`
+          : "そろそろ帰ってきそうです。";
+        $("goPrepButton").disabled = true;
+      } else {
+        dog.classList.remove("away");
+        $("statusTitle").textContent = "玄関でひと休み";
+        $("statusText").textContent = `${state.dogName}が帰宅しています。`;
+        $("goPrepButton").disabled = false;
+      }
+    }
+
+    function renderPrep() {
+      selectedLuggage = null;
+      $("departButton").disabled = true;
+      $("luggageHint").textContent = "荷物を選ぶと、旅先の気配がわかります。";
+      const list = $("luggageList");
+      list.innerHTML = "";
+      state.luggage
+        .map((id) => LUGGAGE.find((item) => item.id === id))
+        .filter(Boolean)
+        .forEach((item) => {
+          const button = document.createElement("button");
+          button.className = "luggage-item";
+          button.innerHTML = `
+            <span class="luggage-icon">${item.icon}</span>
+            <span>
+              <h3>${item.name}</h3>
+              <p>${item.category} / 約${item.durationMinutes}分</p>
+            </span>
+          `;
+          button.addEventListener("click", () => selectLuggage(item, button));
+          list.appendChild(button);
+        });
+    }
+
+    function selectLuggage(item, button) {
+      selectedLuggage = item;
+      document.querySelectorAll(".luggage-item").forEach((node) => node.classList.remove("selected"));
+      button.classList.add("selected");
+      $("luggageHint").textContent = `この荷物で出かけると… ${item.hint}`;
+      $("departButton").disabled = false;
+    }
+
+    function depart() {
+      if (!selectedLuggage) return;
+      const destination = pick(selectedLuggage.destinations);
+      state.journey = {
+        luggageId: selectedLuggage.id,
+        luggageName: selectedLuggage.name,
+        destination,
+        startedAt: Date.now(),
+        durationMs: selectedLuggage.durationMinutes * 60 * 1000 * TIME_SCALE
+      };
+      saveState();
+      showScreen("homeScreen");
+    }
+
+    function checkJourney() {
+      if (!state.journey) return;
+      if (getRemainingMs(state.journey) > 0) return;
+      completeJourney();
+    }
+
+    function completeJourney() {
+      const journey = state.journey;
+      const met = chooseTsukumo(journey.luggageId);
+      const card = createCard(journey, met);
+      if (!state.collected.includes(met.id)) state.collected.push(met.id);
+      state.cards.unshift(card);
+      state.pendingReturn = {
+        journey,
+        tsukumoId: met.id,
+        cardId: card.id
+      };
+      state.journey = null;
+      unlockLuggage();
+      saveState();
+      renderReturn();
+      showScreen("returnScreen");
+    }
+
+    function chooseTsukumo(luggageId) {
+      const mvpPool = TSUKUMO.filter((item) => ["waraji", "chochin", "takekago"].includes(item.id));
+      const exact = mvpPool.filter((item) => item.luggageId === luggageId && !state.collected.includes(item.id));
+      if (exact.length) return pick(exact);
+      const uncollected = mvpPool.filter((item) => !state.collected.includes(item.id));
+      if (uncollected.length) return pick(uncollected);
+      return pick(mvpPool);
+    }
+
+    function createCard(journey, tsukumo) {
+      return {
+        id: `card-${Date.now()}`,
+        date: new Date().toISOString(),
+        dogName: state.dogName,
+        place: journey.destination || tsukumo.place,
+        text: `${journey.destination || tsukumo.place}で、${tsukumo.original}の${tsukumo.name}に出会いました。`,
+        scene: tsukumo.scene,
+        title: `${state.dogName}の旅の記録`
+      };
+    }
+
+    function renderReturn() {
+      const pending = state.pendingReturn;
+      if (!pending) return;
+      const journey = pending.journey;
+      const tsukumo = TSUKUMO.find((item) => item.id === pending.tsukumoId);
+      const card = state.cards.find((item) => item.id === pending.cardId);
+      $("returnSummary").textContent = `${journey.luggageName}を持って、${journey.destination}に行ってきました。`;
+      $("returnTsukumo").innerHTML = `
+        <div class="tsukumo-figure">${tsukumoSvg(tsukumo.id)}</div>
+        <h2>${tsukumo.name}</h2>
+        <p>「${tsukumo.line}」</p>
+      `;
+      $("returnCard").innerHTML = card ? cardHtml(card) : "";
+    }
+
+    function receiveReturn() {
+      state.pendingReturn = null;
+      saveState();
+      showScreen("collectionScreen");
+    }
+
+    function renderCollection() {
+      unlockLuggage();
+      $("collectionCount").textContent = `${state.collected.length} / ${TSUKUMO.length} 体`;
+      renderTsukumoPanel();
+      renderCardsPanel();
+    }
+
+    function renderTsukumoPanel() {
+      const panel = $("tsukumoPanel");
+      panel.innerHTML = "";
+      TSUKUMO.forEach((item) => {
+        const found = state.collected.includes(item.id);
+        const button = document.createElement("button");
+        button.className = `book-item ${found ? "" : "locked"}`;
+        button.innerHTML = `
+          <span class="tsukumo-icon ${found ? "" : "silhouette"}">${found ? tsukumoSvg(item.id) : "?"}</span>
+          <span>
+            <h3>${item.no} ${found ? item.name : "？？？"}</h3>
+            <p>${found ? `${item.original} / ${item.place}` : "まだ出会っていません"}</p>
+          </span>
+        `;
+        button.addEventListener("click", () => showTsukumoDetail(item, found));
+        panel.appendChild(button);
+      });
+    }
+
+    function renderCardsPanel() {
+      const panel = $("cardsPanel");
+      panel.innerHTML = state.cards.length
+        ? state.cards.map(cardHtml).join("")
+        : `<p class="small-note">旅の記録はまだありません。</p>`;
+    }
+
+    function showTsukumoDetail(item, found) {
+      const panel = $("detailPanel");
+      if (!found) {
+        panel.innerHTML = `<h3>未発見</h3><p>旅を重ねると、どこかで出会えるかもしれません。</p>`;
+      } else {
+        panel.innerHTML = `
+          <h3>${item.name}</h3>
+          <p>元の姿：${item.original}</p>
+          <p>出会った場所：${item.place}</p>
+          <p>必要な荷物：${item.required}</p>
+          <p>「${item.line}」</p>
+        `;
+      }
+      panel.classList.remove("hidden");
+    }
+
+    function switchCollectionTab(tab) {
+      const isTsukumo = tab === "tsukumo";
+      $("tsukumoTab").classList.toggle("active", isTsukumo);
+      $("cardsTab").classList.toggle("active", !isTsukumo);
+      $("tsukumoPanel").classList.toggle("hidden", !isTsukumo);
+      $("cardsPanel").classList.toggle("hidden", isTsukumo);
+      $("detailPanel").classList.add("hidden");
+    }
+
+    function cardHtml(card) {
+      const date = new Date(card.date).toLocaleDateString("ja-JP");
+      return `
+        <article class="trip-card">
+          <h3>${card.place}</h3>
+          <div class="scene ${card.scene}"></div>
+          <p><strong>${card.title}</strong></p>
+          <p>${card.text}</p>
+          <p class="small-note">${date}</p>
+        </article>
+      `;
+    }
+
+    function unlockLuggage() {
+      const count = state.collected.length;
+      LUGGAGE.forEach((item) => {
+        if (item.unlockAt && count >= item.unlockAt && !state.luggage.includes(item.id)) {
+          state.luggage.push(item.id);
+        }
+      });
+      saveState();
+    }
+
+    function getRemainingMs(journey) {
+      return Math.max(0, journey.startedAt + journey.durationMs - Date.now());
+    }
+
+    function formatRemaining(ms) {
+      const totalSeconds = Math.ceil(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes}分${String(seconds).padStart(2, "0")}秒`;
+    }
+
+    function showDogSpeech() {
+      if (state.journey) return;
+      $("dogSpeech").textContent = "ただいま";
+      $("dogSpeech").classList.add("show");
+      setTimeout(() => $("dogSpeech").classList.remove("show"), 1300);
+    }
+
+    function pick(items) {
+      return items[Math.floor(Math.random() * items.length)];
+    }
+
+    function tsukumoSvg(id) {
+      const common = `width="72" height="72" viewBox="0 0 72 72" aria-hidden="true"`;
+      if (id === "waraji") {
+        return `<svg ${common}><ellipse cx="36" cy="38" rx="22" ry="30" fill="#D9C69A" stroke="#2D2D2D" stroke-width="3"/><path d="M23 23c9 8 17 21 24 31M49 23C39 31 31 43 24 55M22 38h28" fill="none" stroke="#8C5F3D" stroke-width="3"/></svg>`;
+      }
+      if (id === "chochin") {
+        return `<svg ${common}><path d="M25 14h22l5 12v25L43 61H29l-9-10V26z" fill="#F2D7D5" stroke="#2D2D2D" stroke-width="3"/><path d="M25 26h22M22 38h28M25 51h22" stroke="#C0392B" stroke-width="3"/><circle cx="36" cy="38" r="5" fill="#C0392B"/></svg>`;
+      }
+      if (id === "takekago") {
+        return `<svg ${common}><path d="M18 30h36l-5 28H23z" fill="#D9C69A" stroke="#2D2D2D" stroke-width="3"/><path d="M24 30c1-13 23-13 24 0M24 38h27M22 47h29M29 31l-3 26M38 31v27M47 31l-3 26" fill="none" stroke="#8C5F3D" stroke-width="3"/></svg>`;
+      }
+      return `<svg ${common}><circle cx="36" cy="36" r="24" fill="#DCE7EA" stroke="#2D2D2D" stroke-width="3"/><path d="M24 39c6 7 18 7 24 0" fill="none" stroke="#2D2D2D" stroke-width="3"/><circle cx="28" cy="30" r="3"/><circle cx="44" cy="30" r="3"/></svg>`;
+    }
+
+    // TODO: 荷物・旅先・付喪神の全量を旅先別の抽選テーブルへ拡張する。
+    // TODO: BGM・SEを Web Audio API で追加する。
+    // TODO: 付喪神同士の「対話」イベントを実装する。
+    // TODO: 季節・時間帯による旅先の変化を state と抽選条件へ追加する。
+    // TODO: manifest と service worker を足して PWA 化する。
+    // TODO: 実在の文化財解説テキスト連携用のデータ構造を追加する。
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then((reg) => console.log('SW registered'))
+          .catch((err) => console.log('SW failed:', err));
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
