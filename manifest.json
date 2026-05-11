@@ -2,7 +2,7 @@
   "name": "しろたび",
   "short_name": "しろたび",
   "description": "白い犬が旅をして付喪神を連れ帰るゲーム",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#F5F0E8",
