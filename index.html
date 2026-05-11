@@ -1051,6 +1051,11 @@
         "エントランスに、おおきな蜂の巣がありました",
         "蜂巣のたまりさんに、会いました",
         "青海波の模様が、きれいでした"
+      ],
+      revisitHooks: [
+        { id: "tamari_shadow", text: "写真のすみに、蜂巣の影が写りこんでいました", item: null },
+        { id: "seigaiha_light", text: "青海波の模様が、光のように写っていました", item: null },
+        { id: "entrance_memory", text: "エントランスの空気まで、そっと残っていました", item: null }
       ]
     };
 
@@ -1328,10 +1333,6 @@
       return state.unlockedDestinations.includes(destinationId);
     }
 
-    function isFarLuggage(item) {
-      return item.category === "遠旅の荷物" || ["compass", "tsuzura", "komonjo"].includes(item.id);
-    }
-
     function renderHome() {
       unlockLuggage();
       const dog = $("dogButton");
@@ -1438,7 +1439,7 @@
       const hint = $("museumDestinationHint");
       hint.classList.toggle("locked", !unlocked);
       hint.innerHTML = unlocked
-        ? `<strong>館限定旅先：${TAMA_MUSEUM_DESTINATION.name}</strong><span class="badge">★★★ 館限定</span><p class="small-note">${TAMA_MUSEUM_DESTINATION.description}。遠旅カテゴリの荷物で出会えるかもしれません。</p>`
+        ? `<strong>館限定旅先：${TAMA_MUSEUM_DESTINATION.name}</strong><span class="badge">★★★ 館限定</span><p class="small-note">${TAMA_MUSEUM_DESTINATION.description}。解放後はどの荷物でも向かえます。初回は必ず出会えます。</p>`
         : `<strong>ロック中：館限定旅先</strong><p class="small-note">？たましん美術館で出会えるかも。特別なことば、または館内QRで解放できます。</p>`;
     }
 
@@ -1453,16 +1454,21 @@
     function depart() {
       if (!selectedLuggage) return;
       const destinations = [...selectedLuggage.destinations];
-      if (isDestinationUnlocked(TAMA_MUSEUM_DESTINATION.id) && isFarLuggage(selectedLuggage)) {
+      const tamaUnlocked = isDestinationUnlocked(TAMA_MUSEUM_DESTINATION.id);
+      const firstTamaVisit = tamaUnlocked && !state.collected.includes("hachisu_tamari");
+      if (tamaUnlocked && !firstTamaVisit) {
         destinations.push(TAMA_MUSEUM_DESTINATION.name);
       }
-      const destination = pick(destinations);
+      const destination = firstTamaVisit ? TAMA_MUSEUM_DESTINATION.name : pick(destinations);
       const usePhotoBox = state.photoBoxes > 0;
       if (usePhotoBox) state.photoBoxes -= 1;
       state.journey = {
         luggageId: selectedLuggage.id,
         luggageName: selectedLuggage.name,
         destination,
+        museumVisitType: destination === TAMA_MUSEUM_DESTINATION.name
+          ? firstTamaVisit ? "first" : "revisit"
+          : null,
         photoBox: usePhotoBox,
         startedAt: Date.now(),
         durationMs: selectedLuggage.durationMinutes * 60 * 1000 * TIME_SCALE
@@ -1526,8 +1532,11 @@
     }
 
     function createCard(journey, tsukumo) {
+      const museumHook = journey.museumVisitType === "revisit"
+        ? pick(TAMA_MUSEUM_DESTINATION.revisitHooks)
+        : null;
       const museumText = journey.destination === TAMA_MUSEUM_DESTINATION.name
-        ? pick(TAMA_MUSEUM_DESTINATION.cardTexts)
+        ? museumHook ? museumHook.text : pick(TAMA_MUSEUM_DESTINATION.cardTexts)
         : null;
       return {
         id: `card-${Date.now()}`,
@@ -1536,6 +1545,8 @@
         place: journey.destination || tsukumo.place,
         text: museumText || `${journey.destination || tsukumo.place}で、${tsukumo.original}の${tsukumo.name}に出会いました。`,
         scene: tsukumo.scene,
+        visitType: journey.museumVisitType,
+        cameo: museumHook,
         title: `${state.dogName}の旅の記録`
       };
     }
@@ -1697,7 +1708,7 @@
       const panel = $("detailPanel");
       if (!found) {
         panel.innerHTML = item.rarity === "museum_exclusive"
-          ? `<h3>未発見</h3><span class="badge">★★★ 館限定</span><p>？たましん美術館で出会えるかも。特別なことばで旅先をひらくと、遠旅カテゴリの荷物で向かえるようになります。</p>`
+          ? `<h3>未発見</h3><span class="badge">★★★ 館限定</span><p>？たましん美術館で出会えるかも。特別なことばで旅先をひらくと、どの荷物でも向かえるようになります。</p>`
           : `<h3>未発見</h3><p>旅を重ねると、どこかで出会えるかもしれません。</p>`;
       } else {
         panel.innerHTML = `
