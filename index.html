@@ -405,6 +405,32 @@
       margin-top: -74px;
     }
 
+    .home-actions .quiet {
+      grid-column: 1 / -1;
+    }
+
+    .resource-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .resource-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 32px;
+      padding: 6px 10px;
+      border: 1px solid rgba(45, 45, 45, 0.12);
+      border-radius: 999px;
+      background: rgba(255, 253, 249, 0.82);
+      color: var(--indigo);
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 4px 10px rgba(45, 45, 45, 0.08);
+    }
+
     .sheet {
       display: grid;
       gap: 12px;
@@ -484,6 +510,101 @@
       gap: 14px;
       flex: 1;
       text-align: center;
+    }
+
+    .branch-game-stage {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 12px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .branch-game-head {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .branch-field {
+      position: relative;
+      min-height: 430px;
+      overflow: hidden;
+      border: 1px solid rgba(45, 45, 45, 0.12);
+      border-radius: var(--radius);
+      background:
+        radial-gradient(ellipse at 18% 82%, rgba(140, 95, 61, 0.18), transparent 34%),
+        radial-gradient(ellipse at 82% 18%, rgba(26, 58, 92, 0.14), transparent 30%),
+        linear-gradient(180deg, #DCE7EA 0 38%, #D9C69A 38% 100%);
+      box-shadow: inset 0 0 0 8px rgba(255, 253, 249, 0.25);
+    }
+
+    .branch-target {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      color: var(--wood);
+      background: rgba(255, 253, 249, 0.72);
+      box-shadow: 0 8px 14px rgba(45, 45, 45, 0.14);
+      transition: transform 160ms ease, opacity 160ms ease;
+    }
+
+    .branch-target.fine {
+      color: var(--indigo);
+      background: rgba(242, 215, 213, 0.86);
+    }
+
+    .branch-target.found {
+      opacity: 0;
+      transform: scale(1.25) rotate(12deg);
+    }
+
+    .branch-shape {
+      position: relative;
+      width: 34px;
+      height: 6px;
+      border-radius: 999px;
+      background: currentColor;
+      transform: rotate(-24deg);
+    }
+
+    .branch-shape::before,
+    .branch-shape::after {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 5px;
+      border-radius: 999px;
+      background: currentColor;
+      transform-origin: left center;
+    }
+
+    .branch-shape::before {
+      left: 14px;
+      top: -8px;
+      transform: rotate(-38deg);
+    }
+
+    .branch-shape::after {
+      left: 18px;
+      top: 7px;
+      transform: rotate(36deg);
+    }
+
+    .branch-target.fine .branch-shape::before {
+      box-shadow: 5px -1px 0 var(--vermilion);
+    }
+
+    .game-result {
+      min-height: 44px;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      background: rgba(255, 253, 249, 0.72);
+      color: var(--indigo);
+      line-height: 1.7;
     }
 
     .return-dog {
@@ -709,6 +830,10 @@
         <div>
           <h1 class="brand">しろたび</h1>
           <p class="sub" id="homeSubtitle">白い犬の旅支度</p>
+          <div class="resource-row">
+            <span class="resource-pill" id="branchCount">木のえだ 0本</span>
+            <span class="resource-pill" id="fineBranchCount">りっぱな木のえだ 0本</span>
+          </div>
         </div>
         <button class="icon-button" id="resetButton" title="最初から">↺</button>
       </header>
@@ -732,6 +857,7 @@
       <div class="home-actions">
         <button class="primary" id="goPrepButton">旅に出す</button>
         <button class="secondary" id="goCollectionButton">コレクション帳</button>
+        <button class="quiet" id="goBranchGameButton">こえだ探し</button>
       </div>
     </section>
 
@@ -762,6 +888,25 @@
         <div id="returnTsukumo" class="reveal"></div>
         <div id="returnCard" class="reveal"></div>
         <button class="primary" id="receiveButton">受け取る</button>
+      </div>
+    </section>
+
+    <section id="branchGameScreen" class="screen">
+      <header class="topbar">
+        <button class="icon-button" id="leaveBranchGameButton" title="戻る">←</button>
+        <div>
+          <h1 class="brand">こえだ探し</h1>
+          <p class="sub">庭に落ちた枝をタップします</p>
+        </div>
+      </header>
+      <div class="branch-game-stage">
+        <div class="branch-game-head">
+          <span class="resource-pill" id="branchGameTimer">残り 20秒</span>
+          <span class="resource-pill" id="branchGameScore">木のえだ 0本</span>
+        </div>
+        <p class="small-note">たまに見つかる藍色の枝は、りっぱな木のえだです。</p>
+        <div class="branch-field" id="branchField" aria-label="こえだ探しの庭"></div>
+        <div class="game-result" id="branchGameResult">枝を見つけたらタップしてください。</div>
       </div>
     </section>
 
@@ -874,22 +1019,33 @@
       journey: null,
       collected: [],
       cards: [],
+      branches: 0,
+      fineBranches: 0,
       pendingReturn: null
     };
 
     let state = loadState();
     let selectedLuggage = null;
     let timerId = null;
+    let branchGame = null;
 
     const $ = (id) => document.getElementById(id);
 
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? { ...INITIAL_STATE, ...JSON.parse(raw) } : { ...INITIAL_STATE };
+        return normalizeState(raw ? { ...INITIAL_STATE, ...JSON.parse(raw) } : { ...INITIAL_STATE });
       } catch {
-        return { ...INITIAL_STATE };
+        return normalizeState({ ...INITIAL_STATE });
       }
+    }
+
+    function normalizeState(nextState) {
+      return {
+        ...nextState,
+        branches: Number(nextState.branches || 0),
+        fineBranches: Number(nextState.fineBranches || 0)
+      };
     }
 
     function saveState() {
@@ -901,6 +1057,7 @@
       $(id).classList.add("active");
       if (id === "homeScreen") renderHome();
       if (id === "prepScreen") renderPrep();
+      if (id === "branchGameScreen") renderBranchGame();
       if (id === "collectionScreen") renderCollection();
     }
 
@@ -931,8 +1088,16 @@
         if (!state.journey) showScreen("prepScreen");
       });
       $("goCollectionButton").addEventListener("click", () => showScreen("collectionScreen"));
+      $("goBranchGameButton").addEventListener("click", startBranchGame);
+      $("leaveBranchGameButton").addEventListener("click", () => {
+        stopBranchGame(false);
+        showScreen("homeScreen");
+      });
       document.querySelectorAll("[data-nav='home']").forEach((button) => {
-        button.addEventListener("click", () => showScreen("homeScreen"));
+        button.addEventListener("click", () => {
+          stopBranchGame(false);
+          showScreen("homeScreen");
+        });
       });
       $("dogButton").addEventListener("click", showDogSpeech);
       $("departButton").addEventListener("click", depart);
@@ -944,6 +1109,7 @@
         localStorage.removeItem(STORAGE_KEY);
         state = { ...INITIAL_STATE };
         selectedLuggage = null;
+        stopBranchGame(false);
         showScreen("nameScreen");
       });
     }
@@ -960,6 +1126,7 @@
       unlockLuggage();
       const dog = $("dogButton");
       $("homeSubtitle").textContent = `${state.dogName}の玄関`;
+      renderResources();
       if (state.journey) {
         const remaining = getRemainingMs(state.journey);
         dog.classList.add("away");
@@ -974,6 +1141,11 @@
         $("statusText").textContent = `${state.dogName}が帰宅しています。`;
         $("goPrepButton").disabled = false;
       }
+    }
+
+    function renderResources() {
+      $("branchCount").textContent = `木のえだ ${state.branches}本`;
+      $("fineBranchCount").textContent = `りっぱな木のえだ ${state.fineBranches}本`;
     }
 
     function renderPrep() {
@@ -1032,18 +1204,29 @@
       const journey = state.journey;
       const met = chooseTsukumo(journey.luggageId);
       const card = createCard(journey, met);
+      const branchReward = createBranchReward();
       if (!state.collected.includes(met.id)) state.collected.push(met.id);
       state.cards.unshift(card);
+      state.branches += branchReward.branches;
+      state.fineBranches += branchReward.fineBranches;
       state.pendingReturn = {
         journey,
         tsukumoId: met.id,
-        cardId: card.id
+        cardId: card.id,
+        branchReward
       };
       state.journey = null;
       unlockLuggage();
       saveState();
       renderReturn();
       showScreen("returnScreen");
+    }
+
+    function createBranchReward() {
+      return {
+        branches: randomInt(1, 5),
+        fineBranches: 0
+      };
     }
 
     function chooseTsukumo(luggageId) {
@@ -1073,11 +1256,13 @@
       const journey = pending.journey;
       const tsukumo = TSUKUMO.find((item) => item.id === pending.tsukumoId);
       const card = state.cards.find((item) => item.id === pending.cardId);
+      const branchReward = pending.branchReward || { branches: 0, fineBranches: 0 };
       $("returnSummary").textContent = `${journey.luggageName}を持って、${journey.destination}に行ってきました。`;
       $("returnTsukumo").innerHTML = `
         <div class="tsukumo-figure">${tsukumoSvg(tsukumo.id)}</div>
         <h2>${tsukumo.name}</h2>
         <p>「${tsukumo.line}」</p>
+        <p class="small-note">木のえだを${branchReward.branches}本くわえて帰ってきました。</p>
       `;
       $("returnCard").innerHTML = card ? cardHtml(card) : "";
     }
@@ -1086,6 +1271,88 @@
       state.pendingReturn = null;
       saveState();
       showScreen("collectionScreen");
+    }
+
+    function startBranchGame() {
+      stopBranchGame(false);
+      branchGame = {
+        active: true,
+        endsAt: Date.now() + 20000,
+        branches: 0,
+        fineBranches: 0,
+        spawnTimer: null,
+        tickTimer: null
+      };
+      showScreen("branchGameScreen");
+      $("branchField").innerHTML = "";
+      $("branchGameResult").textContent = "枝を見つけたらタップしてください。";
+      spawnBranchTarget();
+      branchGame.spawnTimer = setInterval(spawnBranchTarget, 760);
+      branchGame.tickTimer = setInterval(updateBranchGame, 200);
+      updateBranchGame();
+    }
+
+    function renderBranchGame() {
+      const active = branchGame && branchGame.active;
+      $("branchGameTimer").textContent = active ? "残り 20秒" : "残り 0秒";
+      $("branchGameScore").textContent = "木のえだ 0本";
+    }
+
+    function updateBranchGame() {
+      if (!branchGame || !branchGame.active) return;
+      const remaining = Math.max(0, branchGame.endsAt - Date.now());
+      $("branchGameTimer").textContent = `残り ${Math.ceil(remaining / 1000)}秒`;
+      $("branchGameScore").textContent = `木のえだ ${branchGame.branches}本`;
+      if (remaining <= 0) stopBranchGame(true);
+    }
+
+    function stopBranchGame(award) {
+      if (!branchGame) return;
+      clearInterval(branchGame.spawnTimer);
+      clearInterval(branchGame.tickTimer);
+      const finalGame = branchGame;
+      branchGame = null;
+      if (award) {
+        state.branches += finalGame.branches;
+        state.fineBranches += finalGame.fineBranches;
+        saveState();
+        $("branchField").innerHTML = "";
+        $("branchGameTimer").textContent = "おしまい";
+        $("branchGameScore").textContent = `木のえだ ${finalGame.branches}本`;
+        $("branchGameResult").textContent = finalGame.fineBranches
+          ? `木のえだ${finalGame.branches}本と、りっぱな木のえだ${finalGame.fineBranches}本を見つけました。`
+          : `木のえだ${finalGame.branches}本を見つけました。`;
+      }
+    }
+
+    function spawnBranchTarget() {
+      if (!branchGame || !branchGame.active) return;
+      const field = $("branchField");
+      const target = document.createElement("button");
+      const isFine = Math.random() < 0.06;
+      target.className = `branch-target ${isFine ? "fine" : ""}`;
+      target.type = "button";
+      target.title = isFine ? "りっぱな木のえだ" : "木のえだ";
+      target.innerHTML = `<span class="branch-shape"></span>`;
+      const maxLeft = Math.max(0, field.clientWidth - 62);
+      const maxTop = Math.max(0, field.clientHeight - 62);
+      target.style.left = `${randomInt(8, maxLeft)}px`;
+      target.style.top = `${randomInt(8, maxTop)}px`;
+      target.addEventListener("click", () => {
+        if (!branchGame || !branchGame.active || target.classList.contains("found")) return;
+        target.classList.add("found");
+        if (isFine) {
+          branchGame.fineBranches += 1;
+        } else {
+          branchGame.branches += 1;
+        }
+        updateBranchGame();
+        setTimeout(() => target.remove(), 180);
+      });
+      field.appendChild(target);
+      setTimeout(() => {
+        if (!target.classList.contains("found")) target.remove();
+      }, 2600);
     }
 
     function renderCollection() {
@@ -1189,6 +1456,10 @@
 
     function pick(items) {
       return items[Math.floor(Math.random() * items.length)];
+    }
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     function tsukumoSvg(id) {
