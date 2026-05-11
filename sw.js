@@ -1,10 +1,12 @@
-const CACHE_NAME = 'shirotabi-v4';
+const CACHE_NAME = 'shirotabi-v5';
 const CACHE_FILES = [
   '/',
   '/index.html',
   '/manifest.json',
   '/icon-192.png',
-  '/icon-512.png'
+  '/icon-512.png',
+  '/assets/images/sirotabi_house-outside.png',
+  '/assets/images/sirotabi_house-entrance.png'
 ];
 
 const scopedUrl = (path) => {

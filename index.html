@@ -145,8 +145,8 @@
       justify-content: center;
       gap: 18px;
       background:
-        linear-gradient(rgba(245, 240, 232, 0.86), rgba(245, 240, 232, 0.92)),
-        repeating-linear-gradient(90deg, rgba(140, 95, 61, 0.08) 0 18px, transparent 18px 38px);
+        linear-gradient(rgba(245, 240, 232, 0.18), rgba(245, 240, 232, 0.72)),
+        url("assets/images/sirotabi_house-outside.png") center / cover no-repeat;
     }
 
     .name-panel {
@@ -155,8 +155,9 @@
       padding: 24px 18px;
       border: 1px solid rgba(45, 45, 45, 0.1);
       border-radius: var(--radius);
-      background: rgba(255, 255, 255, 0.46);
+      background: rgba(255, 253, 249, 0.72);
       box-shadow: 0 12px 28px var(--shadow);
+      backdrop-filter: blur(4px);
     }
 
     .name-panel h1 {
@@ -189,9 +190,8 @@
       margin: 14px -18px 0;
       overflow: hidden;
       background:
-        linear-gradient(180deg, rgba(245, 240, 232, 0.88) 0 43%, transparent 43%),
-        linear-gradient(90deg, rgba(140, 95, 61, 0.16) 0 8px, transparent 8px 24px),
-        var(--paper);
+        linear-gradient(180deg, rgba(245, 240, 232, 0.04), rgba(45, 45, 45, 0.16)),
+        url("assets/images/sirotabi_house-entrance.png") center / cover no-repeat;
     }
 
     .beam {
@@ -203,45 +203,11 @@
       box-shadow: 0 4px 8px rgba(45, 45, 45, 0.12);
     }
 
-    .beam.top {
-      top: 92px;
-    }
-
-    .beam.bottom {
-      top: 392px;
-    }
-
-    .door {
-      position: absolute;
-      left: 28px;
-      right: 28px;
-      top: 110px;
-      height: 280px;
-      border: 10px solid var(--wood);
-      background:
-        linear-gradient(90deg, transparent 49%, rgba(140, 95, 61, 0.38) 49% 51%, transparent 51%),
-        linear-gradient(180deg, rgba(220, 231, 234, 0.9), rgba(245, 240, 232, 0.72));
-    }
-
-    .paper-grid {
-      position: absolute;
-      inset: 16px;
-      background:
-        linear-gradient(var(--wood), var(--wood)) 50% 0 / 5px 100% no-repeat,
-        linear-gradient(var(--wood), var(--wood)) 0 34% / 100% 4px no-repeat,
-        linear-gradient(var(--wood), var(--wood)) 0 68% / 100% 4px no-repeat;
-      opacity: 0.6;
-    }
-
+    .beam,
+    .door,
+    .paper-grid,
     .doma {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 190px;
-      background:
-        radial-gradient(ellipse at 25% 75%, rgba(45, 45, 45, 0.08), transparent 36%),
-        linear-gradient(180deg, #B69B7D, #806753);
+      display: none;
     }
 
     .status-panel {
