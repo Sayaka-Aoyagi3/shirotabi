@@ -66,12 +66,18 @@
     .screen {
       display: none;
       min-height: 100vh;
-      padding: 18px;
+      padding: 18px 18px 94px;
     }
 
     .screen.active {
       display: flex;
       flex-direction: column;
+    }
+
+    .name-screen,
+    #returnScreen,
+    #branchGameScreen {
+      padding-bottom: 18px;
     }
 
     .topbar {
@@ -433,8 +439,57 @@
       margin-top: -74px;
     }
 
-    .home-actions .quiet {
+    .home-actions .primary {
       grid-column: 1 / -1;
+    }
+
+    .bottom-tabs {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      z-index: 30;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      width: min(100vw, 430px);
+      padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+      border-top: 1px solid rgba(45, 45, 45, 0.12);
+      background: rgba(255, 253, 249, 0.94);
+      box-shadow: 0 -10px 22px rgba(45, 45, 45, 0.1);
+      transform: translateX(-50%);
+      backdrop-filter: blur(10px);
+    }
+
+    .bottom-tab {
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      min-height: 54px;
+      border-radius: var(--radius);
+      color: rgba(45, 45, 45, 0.62);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .bottom-tab-icon {
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      color: inherit;
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .bottom-tab.active {
+      color: var(--indigo);
+      background: rgba(26, 58, 92, 0.08);
+    }
+
+    .bottom-tab.active .bottom-tab-icon {
+      color: var(--paper);
+      background: var(--indigo);
     }
 
     .care-panel,
@@ -1147,8 +1202,6 @@
       <div class="event-guide hidden" id="eventGuide"></div>
       <div class="home-actions">
         <button class="primary" id="goPrepButton">旅に出す</button>
-        <button class="secondary" id="goCollectionButton">コレクション帳</button>
-        <button class="quiet" id="goShopButton">おみせ</button>
         <button class="quiet" id="goBranchGameButton">こえだ探し</button>
         <button class="quiet" id="goMuseumButton">ミュージアム</button>
       </div>
@@ -1307,6 +1360,29 @@
         <div id="detailPanel" class="detail-box hidden"></div>
       </div>
     </section>
+
+    <nav class="bottom-tabs hidden" id="bottomTabs" aria-label="メインメニュー">
+      <button class="bottom-tab" data-bottom-tab="home" type="button">
+        <span class="bottom-tab-icon">⌂</span>
+        <span>ホーム</span>
+      </button>
+      <button class="bottom-tab" data-bottom-tab="outing" type="button">
+        <span class="bottom-tab-icon">↗</span>
+        <span>おでかけ</span>
+      </button>
+      <button class="bottom-tab" data-bottom-tab="album" type="button">
+        <span class="bottom-tab-icon">□</span>
+        <span>アルバム</span>
+      </button>
+      <button class="bottom-tab" data-bottom-tab="collection" type="button">
+        <span class="bottom-tab-icon">◎</span>
+        <span>図鑑</span>
+      </button>
+      <button class="bottom-tab" data-bottom-tab="shop" type="button">
+        <span class="bottom-tab-icon">＋</span>
+        <span>おみせ</span>
+      </button>
+    </nav>
   </main>
 
   <script>
@@ -1604,6 +1680,29 @@
       if (id === "museumAlbumScreen") renderMuseumAlbum();
       if (id === "shopScreen") renderShop();
       if (id === "collectionScreen") renderCollection();
+      updateBottomTabs(id);
+    }
+
+    function openCollection(tab) {
+      showScreen("collectionScreen");
+      switchCollectionTab(tab);
+    }
+
+    function updateBottomTabs(activeScreenId) {
+      const tabs = $("bottomTabs");
+      const visible = !["nameScreen", "returnScreen", "branchGameScreen"].includes(activeScreenId);
+      tabs.classList.toggle("hidden", !visible);
+      if (!visible) return;
+      let activeTab = "home";
+      if (["prepScreen", "museumScreen"].includes(activeScreenId)) activeTab = "outing";
+      if (activeScreenId === "museumAlbumScreen") activeTab = "album";
+      if (activeScreenId === "shopScreen") activeTab = "shop";
+      if (activeScreenId === "collectionScreen") {
+        activeTab = $("cardsPanel").classList.contains("hidden") ? "collection" : "album";
+      }
+      document.querySelectorAll("[data-bottom-tab]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.bottomTab === activeTab);
+      });
     }
 
     function init() {
@@ -1636,10 +1735,18 @@
       $("goPrepButton").addEventListener("click", () => {
         if (!state.journey) showScreen("prepScreen");
       });
-      $("goCollectionButton").addEventListener("click", () => showScreen("collectionScreen"));
-      $("goShopButton").addEventListener("click", () => showScreen("shopScreen"));
       $("goBranchGameButton").addEventListener("click", startBranchGame);
       $("goMuseumButton").addEventListener("click", () => showScreen("museumScreen"));
+      document.querySelectorAll("[data-bottom-tab]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const tab = button.dataset.bottomTab;
+          if (tab === "home") showScreen("homeScreen");
+          if (tab === "outing") showScreen(state.journey ? "homeScreen" : "prepScreen");
+          if (tab === "album") openCollection("cards");
+          if (tab === "collection") openCollection("tsukumo");
+          if (tab === "shop") showScreen("shopScreen");
+        });
+      });
       $("petDogButton").addEventListener("click", petDog);
       $("feedDogButton").addEventListener("click", toggleFoodMenu);
       document.querySelectorAll("[data-food-cost]").forEach((button) => {
@@ -2617,7 +2724,7 @@
     function receiveReturn() {
       state.pendingReturn = null;
       saveState();
-      showScreen("collectionScreen");
+      openCollection("cards");
     }
 
     function startBranchGame() {
@@ -2763,6 +2870,7 @@
       $("tsukumoPanel").classList.toggle("hidden", !isTsukumo);
       $("cardsPanel").classList.toggle("hidden", isTsukumo);
       $("detailPanel").classList.add("hidden");
+      if ($("collectionScreen").classList.contains("active")) updateBottomTabs("collectionScreen");
     }
 
     function cardHtml(card) {
