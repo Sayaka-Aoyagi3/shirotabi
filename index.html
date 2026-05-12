@@ -1833,22 +1833,20 @@
     function renderHomeTsukumo() {
       const panel = $("homeTsukumo");
       const found = TSUKUMO.filter((item) => state.collected.includes(item.id));
-      if (!found.length || state.journey || state.walk) {
+      if (!found.length) {
         panel.classList.add("hidden");
         panel.innerHTML = "";
         homeTsukumoRoll = null;
         return;
       }
-      const bucket = Math.floor(Date.now() / 30000);
-      if (!homeTsukumoRoll || homeTsukumoRoll.bucket !== bucket) {
+      if (!homeTsukumoRoll || !found.some((item) => item.id === homeTsukumoRoll.itemId)) {
         const spots = [null, "spot-left", "spot-right", "spot-near-dog", "spot-step"];
         homeTsukumoRoll = {
-          bucket,
           spot: pick(spots),
           itemId: pick(found).id
         };
       }
-      if (!homeTsukumoRoll.spot) {
+      if (state.journey || state.walk || !homeTsukumoRoll.spot) {
         panel.classList.add("hidden");
         panel.innerHTML = "";
         return;
