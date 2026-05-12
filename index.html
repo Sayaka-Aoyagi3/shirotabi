@@ -1359,6 +1359,18 @@
       { id: "guest_ao", name: "あお", color: "gray", line: "散歩の気配につられて来ました。" }
     ];
 
+    const ACTIVE_EVENTS = [
+      {
+        id: "tama_demo_event",
+        museumId: "tama_museum",
+        name: "たましん美術館 ミュージアム散歩",
+        allowNightWalk: true,
+        unlockTsukumoId: "hachisu_tamari",
+        startsAt: "2026-01-01T00:00:00+09:00",
+        endsAt: "2026-12-31T23:59:59+09:00"
+      }
+    ];
+
     const LUGGAGE = [
       {
         id: "onigiri",
@@ -1501,6 +1513,8 @@
         hunger: 80,
         mood: 60,
         walksToday: 0,
+        lastWalkAt: null,
+        eventWalksToday: {},
         petsToday: 0,
         petPenaltyToday: 0,
         feastsToday: 0,
@@ -1548,6 +1562,7 @@
       const care = { ...INITIAL_STATE.care, ...(nextState.care || {}) };
       if (care.lastWalkResetDate !== today) {
         care.walksToday = 0;
+        care.eventWalksToday = {};
         care.lastWalkResetDate = today;
       }
       if (care.lastPetResetDate !== today) {
@@ -1805,7 +1820,9 @@
       $("petDogButton").disabled = disabled;
       $("petDogButton").disabled = disabled || care.petPenaltyToday >= 3;
       $("feedDogButton").disabled = disabled || state.branches < 1 || state.care.hunger >= 90;
-      $("walkDogButton").disabled = disabled || care.energy < 20 || care.hunger < 20 || care.walksToday >= 3;
+      const walkBlock = dailyWalkBlockReason();
+      $("walkDogButton").disabled = disabled || Boolean(walkBlock);
+      $("walkDogButton").textContent = walkBlock ? "散歩はお休み" : "一緒に散歩";
       document.querySelectorAll("[data-food-cost]").forEach((button) => {
         const cost = Number(button.dataset.foodCost);
         const feastBlocked = cost === 5 && care.feastsToday >= 1;
@@ -1869,9 +1886,11 @@
     function dogCareStatus() {
       if (state.journey) return { title: "旅の途中", text: "帰ってきたらお世話できます。" };
       if (state.walk) return { title: "散歩中", text: "一緒に歩いています。" };
+      const walkBlock = dailyWalkBlockReason();
       const care = state.care;
       if (care.hunger < 35) return { title: "おなかがすいています", text: "ご飯をあげると元気が戻ります。" };
       if (care.energy < 30) return { title: "少し眠そうです", text: "今日はゆっくり過ごしてもよさそうです。" };
+      if (walkBlock) return { title: "散歩はお休み", text: walkBlock };
       if (care.mood >= 75) return { title: "ごきげんです", text: "うれしそうにしっぽを振っています。" };
       return { title: "玄関でひと休み", text: "なでたり、ご飯をあげたり、一緒に散歩できます。" };
     }
@@ -1962,9 +1981,15 @@
 
     function startDailyWalk() {
       if (state.walk || state.journey) return;
-      if (state.care.energy < 20 || state.care.hunger < 20 || state.care.walksToday >= 3) return;
+      const blockReason = dailyWalkBlockReason();
+      if (blockReason) {
+        transientCareMessage = blockReason;
+        renderHome();
+        return;
+      }
       state.care.energy = clamp(state.care.energy - 15, 0, 100);
       state.care.hunger = clamp(state.care.hunger - 10, 0, 100);
+      state.care.lastWalkAt = Date.now();
       state.walk = {
         type: "daily",
         startedAt: Date.now(),
@@ -1975,17 +2000,62 @@
       showScreen("homeScreen");
     }
 
+    function dailyWalkBlockReason() {
+      const hour = new Date().getHours();
+      if (hour >= 0 && hour < 4) return `${state.dogName || "しろたび"}は寝ています。`;
+      if (hour >= 21) return `もう夜ですよ。${state.dogName || "しろたび"}は眠そうです。散歩はまた明日にしましょう。`;
+      if (state.care.energy < 20) return "少し疲れているようです。";
+      if (state.care.hunger < 20) return "おなかがすいているようです。";
+      if (state.care.walksToday >= 3) return "今日はたくさん歩きました。また明日、散歩しましょう。";
+      if (state.care.lastWalkAt) {
+        const remaining = 4 * 60 * 60 * 1000 - (Date.now() - state.care.lastWalkAt);
+        if (remaining > 0) return `さっき散歩したばかりです。次の散歩まであと ${formatRemaining(remaining)}。`;
+      }
+      return "";
+    }
+
+    function currentNightEvent(museumId) {
+      const now = Date.now();
+      return ACTIVE_EVENTS.find((event) => {
+        const startsAt = new Date(event.startsAt).getTime();
+        const endsAt = new Date(event.endsAt).getTime();
+        return event.museumId === museumId
+          && event.allowNightWalk
+          && now >= startsAt
+          && now <= endsAt;
+      });
+    }
+
     function startMuseumWalk(withGuest = false) {
       if (state.walk || state.journey) return;
       if (!isDestinationUnlocked(TAMA_MUSEUM_DESTINATION.id)) {
         showScreen("museumScreen");
         return;
       }
+      const event = currentNightEvent(TAMA_MUSEUM_DESTINATION.id);
+      const hour = new Date().getHours();
+      const nightBlocked = (hour >= 21 || hour < 4) && !event;
+      if (nightBlocked) {
+        transientCareMessage = hour < 4
+          ? `${state.dogName || "しろたび"}は寝ています。`
+          : `もう夜ですよ。${state.dogName || "しろたび"}は眠そうです。散歩はまた明日にしましょう。`;
+        showScreen("homeScreen");
+        return;
+      }
+      const today = new Date().toLocaleDateString("sv-SE");
+      const eventKey = event ? event.id : TAMA_MUSEUM_DESTINATION.id;
+      if (state.care.eventWalksToday[eventKey] === today) {
+        transientCareMessage = "今日のミュージアム散歩はもう記録しました。";
+        showScreen("homeScreen");
+        return;
+      }
       state.care.energy = clamp(state.care.energy - 8, 0, 100);
       state.care.hunger = clamp(state.care.hunger - 4, 0, 100);
+      state.care.eventWalksToday[eventKey] = today;
       state.walk = {
         type: "museum",
         museumId: TAMA_MUSEUM_DESTINATION.id,
+        eventId: event ? event.id : null,
         startedAt: Date.now(),
         durationMs: 30 * 1000 * TIME_SCALE,
         guestId: withGuest && state.guestDogs[0] ? state.guestDogs[0].id : null
@@ -2069,12 +2139,13 @@
       const visit = state.museumVisits[TAMA_MUSEUM_DESTINATION.id];
       const unlocked = isDestinationUnlocked(TAMA_MUSEUM_DESTINATION.id);
       const checkedIn = Boolean(visit && visit.checkedInAt);
+      const event = currentNightEvent(TAMA_MUSEUM_DESTINATION.id);
       const status = checkedIn
         ? "たましん美術館にチェックイン済みです。ミュージアム散歩で写真カードを残せます。"
         : unlocked
           ? "館内QRで解放済みです。現地チェックイン前でも、外観風画像でミュージアム散歩カードを作れます。"
           : "位置情報を確認するか、館内QRのことばで館限定旅先を解放できます。";
-      $("museumStatusCard").innerHTML = `<strong>${checkedIn ? "チェックイン済み" : unlocked ? "QR解放済み" : "未解放"}</strong><span>${status}</span>`;
+      $("museumStatusCard").innerHTML = `<strong>${checkedIn ? "チェックイン済み" : unlocked ? "QR解放済み" : "未解放"}</strong><span>${status}</span>${event ? `<span class="badge">${event.name}</span>` : ""}`;
       $("startMuseumWalkButton").disabled = !unlocked && !checkedIn;
     }
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shirotabi-v11';
+const CACHE_NAME = 'shirotabi-v12';
 const CACHE_FILES = [
   '/',
   '/index.html',
