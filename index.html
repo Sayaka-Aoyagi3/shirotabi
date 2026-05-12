@@ -267,6 +267,27 @@
       transform: translateX(-50%) translateY(28px) scale(0.9);
     }
 
+    .home-tsukumo {
+      position: absolute;
+      right: 20px;
+      bottom: 226px;
+      z-index: 4;
+      display: grid;
+      place-items: center;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      color: var(--indigo);
+      background: rgba(255, 253, 249, 0.74);
+      box-shadow: 0 8px 18px var(--shadow);
+    }
+
+    .home-tsukumo .tsukumo-icon {
+      width: 60px;
+      height: 60px;
+      background: transparent;
+    }
+
     .dog {
       position: absolute;
       left: 22px;
@@ -441,6 +462,12 @@
     .album-actions .primary,
     .guest-actions .primary {
       grid-column: 1 / -1;
+    }
+
+    .food-menu {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
     }
 
     .meter-list {
@@ -1077,6 +1104,7 @@
           <div class="tail"></div>
           <div class="dog"><div class="face"><span class="eye left"></span><span class="eye right"></span><span class="nose"></span><span class="mouth"></span></div></div>
         </button>
+        <div class="home-tsukumo hidden" id="homeTsukumo"></div>
         <div class="speech" id="dogSpeech">ただいま</div>
       </div>
 
@@ -1084,6 +1112,11 @@
         <h2 id="careTitle">お世話</h2>
         <p class="small-note" id="careMessage">なでたり、ご飯をあげたり、一緒に散歩できます。</p>
         <div class="meter-list" id="careMeters"></div>
+        <div class="food-menu hidden" id="foodMenu">
+          <button class="quiet" data-food-cost="1">おやつ 1本</button>
+          <button class="quiet" data-food-cost="2">ご飯 2本</button>
+          <button class="quiet" data-food-cost="5">ごちそう 5本</button>
+        </div>
         <div class="care-actions">
           <button class="quiet" id="petDogButton">なでる</button>
           <button class="quiet" id="feedDogButton">ご飯</button>
@@ -1449,10 +1482,14 @@
         hunger: 80,
         mood: 60,
         walksToday: 0,
+        petsToday: 0,
+        feastsToday: 0,
         careStreak: 0,
         lastCareAt: null,
         lastDecayAt: Date.now(),
-        lastWalkResetDate: new Date().toLocaleDateString("sv-SE")
+        lastWalkResetDate: new Date().toLocaleDateString("sv-SE"),
+        lastPetResetDate: new Date().toLocaleDateString("sv-SE"),
+        lastFeastResetDate: new Date().toLocaleDateString("sv-SE")
       },
       walk: null,
       guestDogs: [],
@@ -1464,6 +1501,7 @@
     let timerId = null;
     let branchGame = null;
     let pendingMuseumUnlockNotice = false;
+    let transientCareMessage = "";
     let albumDraft = {
       image: null,
       dogPosition: "bottom_center",
@@ -1489,6 +1527,14 @@
       if (care.lastWalkResetDate !== today) {
         care.walksToday = 0;
         care.lastWalkResetDate = today;
+      }
+      if (care.lastPetResetDate !== today) {
+        care.petsToday = 0;
+        care.lastPetResetDate = today;
+      }
+      if (care.lastFeastResetDate !== today) {
+        care.feastsToday = 0;
+        care.lastFeastResetDate = today;
       }
       return {
         ...nextState,
@@ -1557,7 +1603,10 @@
       $("goBranchGameButton").addEventListener("click", startBranchGame);
       $("goMuseumButton").addEventListener("click", () => showScreen("museumScreen"));
       $("petDogButton").addEventListener("click", petDog);
-      $("feedDogButton").addEventListener("click", feedDog);
+      $("feedDogButton").addEventListener("click", toggleFoodMenu);
+      document.querySelectorAll("[data-food-cost]").forEach((button) => {
+        button.addEventListener("click", () => feedDog(Number(button.dataset.foodCost)));
+      });
       $("walkDogButton").addEventListener("click", startDailyWalk);
       $("checkLocationButton").addEventListener("click", checkMuseumLocation);
       $("museumUnlockButton").addEventListener("click", () => {
@@ -1690,6 +1739,7 @@
       }
       renderCarePanel();
       renderGuestPanel();
+      renderHomeTsukumo();
       renderEventGuide();
     }
 
@@ -1715,7 +1765,8 @@
       $("careTitle").textContent = dogCareStatus().title;
       $("careMessage").textContent = state.walk
         ? "いまは一緒に散歩しています。"
-        : dogCareStatus().text;
+        : transientCareMessage || dogCareStatus().text;
+      transientCareMessage = "";
       $("careMeters").innerHTML = [
         ["なかよし", care.friendship],
         ["元気", care.energy],
@@ -1728,8 +1779,28 @@
         </div>
       `).join("");
       $("petDogButton").disabled = disabled;
-      $("feedDogButton").disabled = disabled || state.branches < 2;
+      $("feedDogButton").disabled = disabled || state.branches < 1 || state.care.hunger >= 90;
       $("walkDogButton").disabled = disabled || care.energy < 20 || care.hunger < 20 || care.walksToday >= 3;
+      document.querySelectorAll("[data-food-cost]").forEach((button) => {
+        const cost = Number(button.dataset.foodCost);
+        const feastBlocked = cost === 5 && care.feastsToday >= 1;
+        button.disabled = disabled || state.branches < cost || care.hunger >= 90 || feastBlocked;
+      });
+    }
+
+    function renderHomeTsukumo() {
+      const panel = $("homeTsukumo");
+      const found = TSUKUMO.filter((item) => state.collected.includes(item.id));
+      if (!found.length || state.journey || state.walk) {
+        panel.classList.add("hidden");
+        panel.innerHTML = "";
+        return;
+      }
+      const index = Math.floor(Date.now() / 30000) % found.length;
+      const item = found[index];
+      panel.classList.remove("hidden");
+      panel.title = `${item.name}が遊びに来ています`;
+      panel.innerHTML = `<span class="tsukumo-icon">${tsukumoSvg(item.id)}</span>`;
     }
 
     function renderGuestPanel() {
@@ -1788,23 +1859,50 @@
     }
 
     function petDog() {
-      state.care.friendship = clamp(state.care.friendship + 1, 0, 100);
-      state.care.mood = clamp(state.care.mood + 4, 0, 100);
+      state.care.petsToday += 1;
+      if (state.care.petsToday <= 5) {
+        state.care.friendship = clamp(state.care.friendship + 1, 0, 100);
+        state.care.mood = clamp(state.care.mood + 4, 0, 100);
+        transientCareMessage = "なでると、うれしそうにしっぽを振りました。";
+      } else if (state.care.petsToday <= 9) {
+        state.care.mood = clamp(state.care.mood + 1, 0, 100);
+        transientCareMessage = "もう満足してきたようです。";
+      } else {
+        state.care.friendship = clamp(state.care.friendship - 1, 0, 100);
+        state.care.mood = clamp(state.care.mood - 2, 0, 100);
+        transientCareMessage = "ちょっとだけ、うっとうしそうに身をよじりました。";
+      }
       markCare();
       saveState();
-      $("careMessage").textContent = "なでると、うれしそうにしっぽを振りました。";
       renderHome();
     }
 
-    function feedDog() {
-      if (state.branches < 2) return;
-      state.branches -= 2;
-      state.care.hunger = clamp(state.care.hunger + 25, 0, 100);
-      state.care.energy = clamp(state.care.energy + 10, 0, 100);
-      state.care.mood = clamp(state.care.mood + 2, 0, 100);
+    function toggleFoodMenu() {
+      $("foodMenu").classList.toggle("hidden");
+    }
+
+    function feedDog(cost = 2) {
+      if (state.branches < cost || state.care.hunger >= 90) return;
+      if (cost === 5 && state.care.feastsToday >= 1) return;
+      state.branches -= cost;
+      if (cost === 1) {
+        state.care.hunger = clamp(state.care.hunger + 8, 0, 100);
+        state.care.mood = clamp(state.care.mood + 1, 0, 100);
+        transientCareMessage = "おやつを食べて、少しうれしそうです。";
+      } else if (cost === 5) {
+        state.care.hunger = clamp(state.care.hunger + 45, 0, 100);
+        state.care.energy = clamp(state.care.energy + 15, 0, 100);
+        state.care.mood = clamp(state.care.mood + 4, 0, 100);
+        state.care.feastsToday += 1;
+        transientCareMessage = "ごちそうを食べて、満足そうです。";
+      } else {
+        state.care.hunger = clamp(state.care.hunger + 20, 0, 100);
+        state.care.energy = clamp(state.care.energy + 8, 0, 100);
+        transientCareMessage = "ご飯を食べて、元気が少し戻りました。";
+      }
       markCare();
+      $("foodMenu").classList.add("hidden");
       saveState();
-      $("careMessage").textContent = "ご飯を食べて、元気が少し戻りました。";
       renderHome();
     }
 
