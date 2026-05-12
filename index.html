@@ -430,6 +430,104 @@
       transform: translateX(-50%) translateY(0);
     }
 
+    #homeScreen {
+      position: relative;
+      height: 100dvh;
+      min-height: 0;
+      overflow: hidden;
+      padding: 0 0 74px;
+    }
+
+    #homeScreen .topbar {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      top: 12px;
+      z-index: 12;
+      min-height: 0;
+      padding: 10px 12px;
+      border: 1px solid rgba(45, 45, 45, 0.1);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 249, 0.78);
+      box-shadow: 0 8px 18px rgba(45, 45, 45, 0.1);
+      backdrop-filter: blur(6px);
+    }
+
+    #homeScreen .brand {
+      font-size: 20px;
+    }
+
+    #homeScreen .sub {
+      margin-top: 0;
+    }
+
+    #homeScreen .resource-row {
+      margin-top: 6px;
+    }
+
+    #homeScreen .resource-pill {
+      min-height: 26px;
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+
+    #homeScreen .icon-button {
+      width: 34px;
+      height: 34px;
+    }
+
+    #homeScreen .genkan {
+      flex: none;
+      height: calc(100dvh - 74px);
+      min-height: 0;
+      margin: 0;
+    }
+
+    #homeScreen .status-panel {
+      left: 18px;
+      right: 18px;
+      top: 106px;
+      padding: 10px 12px;
+    }
+
+    #homeScreen .dog-wrap {
+      bottom: 326px;
+      transform: translateX(-50%) scale(0.86);
+    }
+
+    #homeScreen .dog-wrap.away {
+      transform: translateX(-50%) translateY(20px) scale(0.78);
+    }
+
+    #homeScreen .speech {
+      bottom: 476px;
+    }
+
+    #homeScreen .home-tsukumo.spot-left,
+    #homeScreen .home-tsukumo.spot-right {
+      bottom: 442px;
+    }
+
+    #homeScreen .home-tsukumo.spot-near-dog {
+      bottom: 360px;
+    }
+
+    #homeScreen .home-tsukumo.spot-step {
+      bottom: 338px;
+    }
+
+    .home-dock {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 84px;
+      z-index: 14;
+      display: grid;
+      gap: 8px;
+      max-height: min(45dvh, 330px);
+      overflow: hidden;
+    }
+
     .home-actions {
       position: relative;
       z-index: 6;
@@ -521,10 +619,85 @@
       font-size: 16px;
     }
 
+    #homeScreen .care-panel,
+    #homeScreen .guest-panel,
+    #homeScreen .event-guide {
+      padding: 10px 12px;
+      background: rgba(255, 253, 249, 0.86);
+      backdrop-filter: blur(6px);
+    }
+
+    #homeScreen .care-panel {
+      margin: 0;
+    }
+
+    #homeScreen .care-panel h2,
+    #homeScreen .guest-panel h2 {
+      font-size: 15px;
+    }
+
+    #homeScreen #careMessage,
+    #homeScreen .guest-panel .small-note {
+      display: none;
+    }
+
+    #homeScreen .meter-list {
+      grid-template-columns: 1fr 1fr;
+      gap: 7px 10px;
+    }
+
+    #homeScreen .meter {
+      gap: 3px;
+      font-size: 11px;
+    }
+
+    #homeScreen .meter-bar {
+      height: 6px;
+    }
+
+    #homeScreen .care-actions,
+    #homeScreen .guest-actions {
+      gap: 7px;
+    }
+
+    #homeScreen .guest-actions {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    #homeScreen .guest-actions .primary {
+      grid-column: auto;
+    }
+
+    #homeScreen .primary,
+    #homeScreen .secondary,
+    #homeScreen .quiet {
+      min-height: 40px;
+      padding: 8px 10px;
+    }
+
+    #homeScreen .guest-panel {
+      gap: 8px;
+    }
+
+    #homeScreen .event-guide {
+      gap: 3px;
+      margin: 0;
+      padding: 9px 11px;
+    }
+
+    #homeScreen .event-guide p {
+      display: none;
+    }
+
+    #homeScreen .home-actions {
+      display: none;
+    }
+
     .care-actions,
     .museum-actions,
     .album-actions,
     .guest-actions,
+    .outing-shortcuts,
     .segmented {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1182,28 +1355,30 @@
         <div class="speech" id="dogSpeech">ただいま</div>
       </div>
 
-      <div class="care-panel" id="carePanel">
-        <h2 id="careTitle">お世話</h2>
-        <p class="small-note" id="careMessage">なでたり、ご飯をあげたり、一緒に散歩できます。</p>
-        <div class="meter-list" id="careMeters"></div>
-        <div class="food-menu hidden" id="foodMenu">
-          <button class="quiet" data-food-cost="1">おやつ 1本</button>
-          <button class="quiet" data-food-cost="2">ご飯 2本</button>
-          <button class="quiet" data-food-cost="5">ごちそう 5本</button>
+      <div class="home-dock">
+        <div class="care-panel" id="carePanel">
+          <h2 id="careTitle">お世話</h2>
+          <p class="small-note" id="careMessage">なでたり、ご飯をあげたり、一緒に散歩できます。</p>
+          <div class="meter-list" id="careMeters"></div>
+          <div class="food-menu hidden" id="foodMenu">
+            <button class="quiet" data-food-cost="1">おやつ 1本</button>
+            <button class="quiet" data-food-cost="2">ご飯 2本</button>
+            <button class="quiet" data-food-cost="5">ごちそう 5本</button>
+          </div>
+          <div class="care-actions">
+            <button class="quiet" id="petDogButton">なでる</button>
+            <button class="quiet" id="feedDogButton">ご飯</button>
+            <button class="primary" id="walkDogButton">一緒に散歩</button>
+          </div>
         </div>
-        <div class="care-actions">
-          <button class="quiet" id="petDogButton">なでる</button>
-          <button class="quiet" id="feedDogButton">ご飯</button>
-          <button class="primary" id="walkDogButton">一緒に散歩</button>
-        </div>
-      </div>
 
-      <div class="guest-panel hidden" id="guestPanel"></div>
-      <div class="event-guide hidden" id="eventGuide"></div>
-      <div class="home-actions">
-        <button class="primary" id="goPrepButton">旅に出す</button>
-        <button class="quiet" id="goBranchGameButton">こえだ探し</button>
-        <button class="quiet" id="goMuseumButton">ミュージアム</button>
+        <div class="guest-panel hidden" id="guestPanel"></div>
+        <div class="event-guide hidden" id="eventGuide"></div>
+        <div class="home-actions">
+          <button class="primary" id="goPrepButton">旅に出す</button>
+          <button class="quiet" id="goBranchGameButton">こえだ探し</button>
+          <button class="quiet" id="goMuseumButton">ミュージアム</button>
+        </div>
       </div>
     </section>
 
@@ -1215,7 +1390,11 @@
           <p class="sub">荷物をひとつ選びます</p>
         </div>
       </header>
-        <div class="sheet">
+      <div class="sheet">
+        <div class="outing-shortcuts">
+          <button class="quiet" id="prepBranchGameButton">こえだ探し</button>
+          <button class="quiet" id="prepMuseumButton">ミュージアム</button>
+        </div>
         <div id="luggageList" class="luggage-list"></div>
         <div id="museumDestinationHint" class="destination-card locked"></div>
         <div class="hint" id="luggageHint">荷物を選ぶと、旅先の気配がわかります。</div>
@@ -1737,6 +1916,8 @@
       });
       $("goBranchGameButton").addEventListener("click", startBranchGame);
       $("goMuseumButton").addEventListener("click", () => showScreen("museumScreen"));
+      $("prepBranchGameButton").addEventListener("click", startBranchGame);
+      $("prepMuseumButton").addEventListener("click", () => showScreen("museumScreen"));
       document.querySelectorAll("[data-bottom-tab]").forEach((button) => {
         button.addEventListener("click", () => {
           const tab = button.dataset.bottomTab;
@@ -1893,7 +2074,7 @@
       const guide = $("eventGuide");
       const tamaUnlocked = isDestinationUnlocked(TAMA_MUSEUM_DESTINATION.id);
       const firstTamaVisit = tamaUnlocked && !state.collected.includes("hachisu_tamari");
-      if (!tamaUnlocked || state.journey || state.walk) {
+      if (!tamaUnlocked || state.journey || state.walk || state.guestDogs[0]) {
         guide.classList.add("hidden");
         guide.innerHTML = "";
         return;
@@ -1980,7 +2161,7 @@
         <div class="guest-actions">
           <button class="quiet" id="petGuestButton" ${guest.actions.petCount >= 3 ? "disabled" : ""}>なでる</button>
           <button class="quiet" id="feedGuestButton" ${guest.actions.fed || state.branches < 2 ? "disabled" : ""}>ご飯</button>
-          <button class="primary" id="walkGuestButton" ${guest.actions.walked || state.walk || !isDestinationUnlocked(TAMA_MUSEUM_DESTINATION.id) ? "disabled" : ""}>ミュージアム散歩</button>
+          <button class="primary" id="walkGuestButton" ${guest.actions.walked || state.walk || !isDestinationUnlocked(TAMA_MUSEUM_DESTINATION.id) ? "disabled" : ""}>散歩</button>
         </div>
       `;
       $("petGuestButton").addEventListener("click", petGuestDog);
