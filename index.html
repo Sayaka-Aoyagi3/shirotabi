@@ -516,6 +516,23 @@
       bottom: 338px;
     }
 
+    .kamado-hotspot {
+      position: absolute;
+      right: 58px;
+      bottom: 300px;
+      z-index: 6;
+      width: 58px;
+      height: 58px;
+      border: 2px solid rgba(255, 253, 249, 0.9);
+      border-radius: 50%;
+      color: var(--indigo);
+      background: rgba(255, 253, 249, 0.72);
+      box-shadow: 0 8px 18px rgba(45, 45, 45, 0.14);
+      font-size: 12px;
+      font-weight: 700;
+      backdrop-filter: blur(4px);
+    }
+
     .home-dock {
       position: absolute;
       left: 18px;
@@ -636,6 +653,7 @@
       font-size: 15px;
     }
 
+    #homeScreen #careMeters,
     #homeScreen #careMessage,
     #homeScreen .guest-panel .small-note {
       display: none;
@@ -660,10 +678,12 @@
       gap: 7px;
     }
 
+    #homeScreen .care-actions,
     #homeScreen .guest-actions {
       grid-template-columns: repeat(3, 1fr);
     }
 
+    #homeScreen .care-actions .primary,
     #homeScreen .guest-actions .primary {
       grid-column: auto;
     }
@@ -691,6 +711,16 @@
 
     #homeScreen .home-actions {
       display: none;
+    }
+
+    .care-detail-summary {
+      display: grid;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid rgba(45, 45, 45, 0.12);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 249, 0.82);
+      box-shadow: 0 8px 18px rgba(45, 45, 45, 0.08);
     }
 
     .care-actions,
@@ -1351,6 +1381,7 @@
           <div class="tail"></div>
           <div class="dog"><div class="face"><span class="eye left"></span><span class="eye right"></span><span class="nose"></span><span class="mouth"></span></div></div>
         </button>
+        <button class="kamado-hotspot" id="kamadoButton" title="ご飯をあげる">ご飯</button>
         <div class="home-tsukumo hidden" id="homeTsukumo"></div>
         <div class="speech" id="dogSpeech">ただいま</div>
       </div>
@@ -1367,8 +1398,8 @@
           </div>
           <div class="care-actions">
             <button class="quiet" id="petDogButton">なでる</button>
-            <button class="quiet" id="feedDogButton">ご飯</button>
             <button class="primary" id="walkDogButton">一緒に散歩</button>
+            <button class="quiet" id="careDetailButton">様子</button>
           </div>
         </div>
 
@@ -1379,6 +1410,24 @@
           <button class="quiet" id="goBranchGameButton">こえだ探し</button>
           <button class="quiet" id="goMuseumButton">ミュージアム</button>
         </div>
+      </div>
+    </section>
+
+    <section id="careDetailScreen" class="screen">
+      <header class="topbar">
+        <button class="icon-button" data-nav="home" title="戻る">←</button>
+        <div>
+          <h1 class="brand">しろたびの様子</h1>
+          <p class="sub">元気やおなかの状態を見ます</p>
+        </div>
+      </header>
+      <div class="sheet">
+        <div class="care-detail-summary">
+          <h2 id="careDetailTitle">玄関でひと休み</h2>
+          <p class="small-note" id="careDetailMessage"></p>
+          <div class="meter-list" id="careDetailMeters"></div>
+        </div>
+        <p class="small-note">数値は目安です。ホームでは、しろたびの様子をひとことで表示します。</p>
       </div>
     </section>
 
@@ -1857,6 +1906,7 @@
       if (id === "branchGameScreen") renderBranchGame();
       if (id === "museumScreen") renderMuseum();
       if (id === "museumAlbumScreen") renderMuseumAlbum();
+      if (id === "careDetailScreen") renderCareDetails();
       if (id === "shopScreen") renderShop();
       if (id === "collectionScreen") renderCollection();
       updateBottomTabs(id);
@@ -1874,6 +1924,7 @@
       if (!visible) return;
       let activeTab = "home";
       if (["prepScreen", "museumScreen"].includes(activeScreenId)) activeTab = "outing";
+      if (activeScreenId === "careDetailScreen") activeTab = "home";
       if (activeScreenId === "museumAlbumScreen") activeTab = "album";
       if (activeScreenId === "shopScreen") activeTab = "shop";
       if (activeScreenId === "collectionScreen") {
@@ -1929,7 +1980,8 @@
         });
       });
       $("petDogButton").addEventListener("click", petDog);
-      $("feedDogButton").addEventListener("click", toggleFoodMenu);
+      $("kamadoButton").addEventListener("click", toggleFoodMenu);
+      $("careDetailButton").addEventListener("click", () => showScreen("careDetailScreen"));
       document.querySelectorAll("[data-food-cost]").forEach((button) => {
         button.addEventListener("click", () => feedDog(Number(button.dataset.foodCost)));
       });
@@ -2107,15 +2159,35 @@
       `).join("");
       $("petDogButton").disabled = disabled;
       $("petDogButton").disabled = disabled || care.petPenaltyToday >= 3;
-      $("feedDogButton").disabled = disabled || state.branches < 1 || state.care.hunger >= 90;
+      $("kamadoButton").disabled = disabled || state.branches < 1 || state.care.hunger >= 90;
+      if ($("kamadoButton").disabled) $("foodMenu").classList.add("hidden");
       const walkBlock = dailyWalkBlockReason();
       $("walkDogButton").disabled = disabled || Boolean(walkBlock);
-      $("walkDogButton").textContent = walkBlock ? "散歩はお休み" : "一緒に散歩";
+      $("walkDogButton").textContent = walkBlock ? "お休み" : "散歩";
+      $("careDetailButton").disabled = false;
       document.querySelectorAll("[data-food-cost]").forEach((button) => {
         const cost = Number(button.dataset.foodCost);
         const feastBlocked = cost === 5 && care.feastsToday >= 1;
         button.disabled = disabled || state.branches < cost || care.hunger >= 90 || feastBlocked;
       });
+    }
+
+    function renderCareDetails() {
+      const status = dogCareStatus();
+      const care = state.care;
+      $("careDetailTitle").textContent = status.title;
+      $("careDetailMessage").textContent = transientCareMessage || status.text;
+      $("careDetailMeters").innerHTML = [
+        ["なかよし", care.friendship],
+        ["元気", care.energy],
+        ["おなか", care.hunger],
+        ["ごきげん", care.mood]
+      ].map(([label, value]) => `
+        <div class="meter">
+          <span><strong>${label}</strong><em>${value}</em></span>
+          <div class="meter-bar"><i class="meter-fill" style="width:${clamp(value, 0, 100)}%"></i></div>
+        </div>
+      `).join("");
     }
 
     function renderHomeTsukumo() {
