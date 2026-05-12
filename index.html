@@ -269,8 +269,6 @@
 
     .home-tsukumo {
       position: absolute;
-      right: 20px;
-      bottom: 226px;
       z-index: 4;
       display: grid;
       place-items: center;
@@ -280,6 +278,27 @@
       color: var(--indigo);
       background: rgba(255, 253, 249, 0.74);
       box-shadow: 0 8px 18px var(--shadow);
+    }
+
+    .home-tsukumo.spot-left {
+      left: 20px;
+      bottom: 230px;
+    }
+
+    .home-tsukumo.spot-right {
+      right: 20px;
+      bottom: 226px;
+    }
+
+    .home-tsukumo.spot-near-dog {
+      left: calc(50% + 58px);
+      bottom: 156px;
+      transform: translateX(-50%);
+    }
+
+    .home-tsukumo.spot-step {
+      left: 28px;
+      bottom: 118px;
     }
 
     .home-tsukumo .tsukumo-icon {
@@ -1483,7 +1502,9 @@
         mood: 60,
         walksToday: 0,
         petsToday: 0,
+        petPenaltyToday: 0,
         feastsToday: 0,
+        branchGiftDate: null,
         careStreak: 0,
         lastCareAt: null,
         lastDecayAt: Date.now(),
@@ -1502,6 +1523,7 @@
     let branchGame = null;
     let pendingMuseumUnlockNotice = false;
     let transientCareMessage = "";
+    let homeTsukumoRoll = null;
     let albumDraft = {
       image: null,
       dogPosition: "bottom_center",
@@ -1530,6 +1552,7 @@
       }
       if (care.lastPetResetDate !== today) {
         care.petsToday = 0;
+        care.petPenaltyToday = 0;
         care.lastPetResetDate = today;
       }
       if (care.lastFeastResetDate !== today) {
@@ -1737,6 +1760,7 @@
           : "そろそろ戻ってきそうです。";
         $("goPrepButton").disabled = true;
       }
+      maybeOfferBranchGift();
       renderCarePanel();
       renderGuestPanel();
       renderHomeTsukumo();
@@ -1779,6 +1803,7 @@
         </div>
       `).join("");
       $("petDogButton").disabled = disabled;
+      $("petDogButton").disabled = disabled || care.petPenaltyToday >= 3;
       $("feedDogButton").disabled = disabled || state.branches < 1 || state.care.hunger >= 90;
       $("walkDogButton").disabled = disabled || care.energy < 20 || care.hunger < 20 || care.walksToday >= 3;
       document.querySelectorAll("[data-food-cost]").forEach((button) => {
@@ -1794,11 +1819,26 @@
       if (!found.length || state.journey || state.walk) {
         panel.classList.add("hidden");
         panel.innerHTML = "";
+        homeTsukumoRoll = null;
         return;
       }
-      const index = Math.floor(Date.now() / 30000) % found.length;
-      const item = found[index];
+      const bucket = Math.floor(Date.now() / 30000);
+      if (!homeTsukumoRoll || homeTsukumoRoll.bucket !== bucket) {
+        const spots = [null, "spot-left", "spot-right", "spot-near-dog", "spot-step"];
+        homeTsukumoRoll = {
+          bucket,
+          spot: pick(spots),
+          itemId: pick(found).id
+        };
+      }
+      if (!homeTsukumoRoll.spot) {
+        panel.classList.add("hidden");
+        panel.innerHTML = "";
+        return;
+      }
+      const item = found.find((candidate) => candidate.id === homeTsukumoRoll.itemId) || found[0];
       panel.classList.remove("hidden");
+      panel.className = `home-tsukumo ${homeTsukumoRoll.spot}`;
       panel.title = `${item.name}が遊びに来ています`;
       panel.innerHTML = `<span class="tsukumo-icon">${tsukumoSvg(item.id)}</span>`;
     }
@@ -1846,10 +1886,19 @@
       const last = state.care.lastDecayAt || now;
       const elapsedHours = Math.floor((now - last) / (60 * 60 * 1000));
       if (elapsedHours <= 0) return;
-      state.care.hunger = clamp(state.care.hunger - Math.floor(elapsedHours / 6) * 5, 0, 100);
+      state.care.hunger = clamp(state.care.hunger - Math.floor(elapsedHours / 6) * 15, 0, 100);
       state.care.energy = clamp(state.care.energy - Math.floor(elapsedHours / 12) * 5, 0, 100);
-      state.care.mood = clamp(state.care.mood - Math.floor(elapsedHours / 24) * 10, 0, 100);
+      state.care.mood = clamp(state.care.mood - Math.floor(elapsedHours / 24) * 8, 0, 100);
       state.care.lastDecayAt = now;
+      saveState();
+    }
+
+    function maybeOfferBranchGift() {
+      const today = new Date().toLocaleDateString("sv-SE");
+      if (state.branches > 0 || state.care.hunger >= 30 || state.care.branchGiftDate === today) return;
+      state.branches += 2;
+      state.care.branchGiftDate = today;
+      transientCareMessage = "玄関に木のえだが少し置いてありました。";
       saveState();
     }
 
@@ -1867,10 +1916,15 @@
       } else if (state.care.petsToday <= 9) {
         state.care.mood = clamp(state.care.mood + 1, 0, 100);
         transientCareMessage = "もう満足してきたようです。";
-      } else {
+      } else if (state.care.petPenaltyToday < 3) {
         state.care.friendship = clamp(state.care.friendship - 1, 0, 100);
         state.care.mood = clamp(state.care.mood - 2, 0, 100);
-        transientCareMessage = "ちょっとだけ、うっとうしそうに身をよじりました。";
+        state.care.petPenaltyToday += 1;
+        transientCareMessage = state.care.petPenaltyToday >= 3
+          ? "今日はもうそっとしておきましょう。"
+          : "ちょっとだけ、うっとうしそうに身をよじりました。";
+      } else {
+        transientCareMessage = "今日はもうそっとしておきましょう。";
       }
       markCare();
       saveState();
