@@ -397,6 +397,110 @@
       grid-column: 1 / -1;
     }
 
+    .care-panel,
+    .guest-panel,
+    .museum-panel,
+    .album-panel {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid rgba(45, 45, 45, 0.12);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 249, 0.78);
+      box-shadow: 0 8px 18px rgba(45, 45, 45, 0.08);
+    }
+
+    .care-panel {
+      position: relative;
+      z-index: 7;
+      margin-top: -64px;
+      margin-bottom: 10px;
+    }
+
+    .care-panel h2,
+    .guest-panel h2,
+    .museum-panel h2,
+    .album-panel h2 {
+      margin: 0;
+      color: var(--indigo);
+      font-size: 16px;
+    }
+
+    .care-actions,
+    .museum-actions,
+    .album-actions,
+    .guest-actions,
+    .segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .care-actions .primary,
+    .museum-actions .primary,
+    .album-actions .primary,
+    .guest-actions .primary {
+      grid-column: 1 / -1;
+    }
+
+    .meter-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .meter {
+      display: grid;
+      gap: 4px;
+      font-size: 12px;
+      color: rgba(45, 45, 45, 0.76);
+    }
+
+    .meter span {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .meter-bar {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(26, 58, 92, 0.1);
+    }
+
+    .meter-fill {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--vermilion), var(--indigo));
+    }
+
+    .event-guide {
+      position: relative;
+      z-index: 7;
+      display: grid;
+      gap: 6px;
+      margin-top: 0;
+      margin-bottom: 10px;
+      padding: 12px;
+      border: 1px solid rgba(245, 200, 66, 0.52);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 249, 0.9);
+      box-shadow: 0 10px 22px rgba(45, 45, 45, 0.12);
+    }
+
+    .event-guide strong {
+      color: var(--indigo);
+      font-size: 14px;
+    }
+
+    .event-guide p {
+      margin: 0;
+      color: rgba(45, 45, 45, 0.76);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
     .resource-row {
       display: flex;
       flex-wrap: wrap;
@@ -540,6 +644,16 @@
 
     .destination-card strong {
       color: var(--indigo);
+    }
+
+    .status-card {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border-left: 4px solid var(--indigo);
+      border-radius: var(--radius);
+      background: rgba(220, 231, 234, 0.42);
+      line-height: 1.7;
     }
 
     .badge {
@@ -870,6 +984,37 @@
       font-size: 13px;
     }
 
+    .album-image {
+      position: relative;
+      width: 100%;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(45, 45, 45, 0.12);
+    }
+
+    .album-canvas-wrap {
+      display: grid;
+      gap: 8px;
+    }
+
+    .album-canvas {
+      width: 100%;
+      aspect-ratio: 1;
+      border: 1px solid rgba(45, 45, 45, 0.12);
+      border-radius: var(--radius);
+      background: #fffdf9;
+      box-shadow: inset 0 0 0 8px rgba(255, 253, 249, 0.32);
+    }
+
+    .file-input {
+      width: 100%;
+      min-height: 44px;
+      padding: 9px;
+      border: 1px solid rgba(45, 45, 45, 0.14);
+      border-radius: var(--radius);
+      background: #fffdf9;
+    }
+
     .small-note {
       margin: 0;
       color: rgba(45, 45, 45, 0.7);
@@ -935,11 +1080,25 @@
         <div class="speech" id="dogSpeech">ただいま</div>
       </div>
 
+      <div class="care-panel" id="carePanel">
+        <h2 id="careTitle">お世話</h2>
+        <p class="small-note" id="careMessage">なでたり、ご飯をあげたり、一緒に散歩できます。</p>
+        <div class="meter-list" id="careMeters"></div>
+        <div class="care-actions">
+          <button class="quiet" id="petDogButton">なでる</button>
+          <button class="quiet" id="feedDogButton">ご飯</button>
+          <button class="primary" id="walkDogButton">一緒に散歩</button>
+        </div>
+      </div>
+
+      <div class="guest-panel hidden" id="guestPanel"></div>
+      <div class="event-guide hidden" id="eventGuide"></div>
       <div class="home-actions">
         <button class="primary" id="goPrepButton">旅に出す</button>
         <button class="secondary" id="goCollectionButton">コレクション帳</button>
         <button class="quiet" id="goShopButton">おみせ</button>
         <button class="quiet" id="goBranchGameButton">こえだ探し</button>
+        <button class="quiet" id="goMuseumButton">ミュージアム</button>
       </div>
     </section>
 
@@ -990,6 +1149,68 @@
         <p class="small-note">たまに見つかる藍色の枝は、りっぱな木のえだです。</p>
         <div class="branch-field" id="branchField" aria-label="こえだ探しの庭"></div>
         <div class="game-result" id="branchGameResult">枝を見つけたらタップしてください。</div>
+      </div>
+    </section>
+
+    <section id="museumScreen" class="screen">
+      <header class="topbar">
+        <button class="icon-button" data-nav="home" title="戻る">←</button>
+        <div>
+          <h1 class="brand">ミュージアム</h1>
+          <p class="sub">現地限定の記録を作ります</p>
+        </div>
+      </header>
+      <div class="sheet">
+        <div class="status-card" id="museumStatusCard"></div>
+        <div class="museum-panel">
+          <h2>たましん美術館</h2>
+          <p class="small-note">立川にある、おおきな蜂の巣がある美術館。</p>
+          <span class="badge">★★★ 館限定 蜂巣のたまり</span>
+          <div class="museum-actions">
+            <button class="secondary" id="checkLocationButton">現在地を確認</button>
+            <button class="quiet" id="museumUnlockButton">QR解放として使う</button>
+            <button class="primary" id="startMuseumWalkButton">ミュージアム散歩へ</button>
+          </div>
+          <p class="small-note">位置情報は端末内で近くにいるかを確認するためだけに使います。MVPでは外部へ送信しません。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="museumAlbumScreen" class="screen">
+      <header class="topbar">
+        <button class="icon-button" data-nav="museum" title="戻る">←</button>
+        <div>
+          <h1 class="brand">写真カード</h1>
+          <p class="sub">ミュージアム散歩の記録</p>
+        </div>
+      </header>
+      <div class="sheet">
+        <div class="album-panel">
+          <h2>写真を選ぶ</h2>
+          <p class="small-note">写真には、人の顔、名札、学校名、住所などが写らないようにしてください。</p>
+          <input class="file-input" id="albumImageInput" type="file" accept="image/*">
+          <div class="album-actions">
+            <button class="quiet" id="useMuseumExteriorButton">外観風画像を使う</button>
+            <button class="quiet" id="toggleGuestAlbumButton">よそのワンコ同席</button>
+          </div>
+        </div>
+        <div class="album-panel">
+          <h2>配置</h2>
+          <div class="segmented">
+            <button class="quiet" data-dog-position="bottom_left">左下</button>
+            <button class="quiet" data-dog-position="bottom_center">まんなか</button>
+            <button class="quiet" data-dog-position="bottom_right">右下</button>
+            <button class="quiet" id="toggleTsukumoButton">付喪神</button>
+          </div>
+        </div>
+        <div class="album-panel">
+          <div class="album-canvas-wrap">
+            <canvas class="album-canvas" id="albumCanvas" width="1080" height="1080"></canvas>
+          </div>
+          <div class="segmented" id="captionChoices"></div>
+          <button class="primary" id="saveAlbumButton">アルバムに保存</button>
+          <p class="small-note" id="albumMessage">定型文を選んで保存できます。</p>
+        </div>
       </div>
     </section>
 
@@ -1058,6 +1279,33 @@
         { id: "entrance_memory", text: "エントランスの空気まで、そっと残っていました", item: null }
       ]
     };
+
+    const MUSEUMS = [
+      {
+        id: "tama_museum",
+        name: "たましん美術館",
+        description: "立川にある、おおきな蜂の巣がある美術館",
+        latitude: null,
+        longitude: null,
+        radiusMeters: 150,
+        unlockCode: MUSEUM_UNLOCK_CODE,
+        destinationId: TAMA_MUSEUM_DESTINATION.id,
+        exclusiveTsukumoId: "hachisu_tamari",
+        basicFrameId: "tama_basic"
+      }
+    ];
+
+    const CAPTIONS = [
+      { id: "tama_hachisu_default", text: "たましん美術館で、蜂巣のたまりさんと記録を残しました。" },
+      { id: "tama_walk_dog", text: "しろたびと一緒に、たましん美術館を散歩しました。" },
+      { id: "tama_hive_air", text: "おおきな蜂の巣の前で、そっと一枚残しました。" }
+    ];
+
+    const GUEST_DOGS = [
+      { id: "guest_mugi", name: "むぎ", color: "cream", line: "玄関でしっぽを振っています。" },
+      { id: "guest_suzu", name: "すず", color: "white", line: "少しだけ遊びに来ました。" },
+      { id: "guest_ao", name: "あお", color: "gray", line: "散歩の気配につられて来ました。" }
+    ];
 
     const LUGGAGE = [
       {
@@ -1191,6 +1439,23 @@
       fineBranches: 0,
       photoBoxes: 0,
       unlockedDestinations: [],
+      unlockedFrames: [],
+      museumVisits: {},
+      museumAlbums: [],
+      museumAlbumEnabled: false,
+      care: {
+        friendship: 10,
+        energy: 80,
+        hunger: 80,
+        mood: 60,
+        walksToday: 0,
+        careStreak: 0,
+        lastCareAt: null,
+        lastDecayAt: Date.now(),
+        lastWalkResetDate: new Date().toLocaleDateString("sv-SE")
+      },
+      walk: null,
+      guestDogs: [],
       pendingReturn: null
     };
 
@@ -1198,6 +1463,14 @@
     let selectedLuggage = null;
     let timerId = null;
     let branchGame = null;
+    let pendingMuseumUnlockNotice = false;
+    let albumDraft = {
+      image: null,
+      dogPosition: "bottom_center",
+      showTsukumo: true,
+      includeGuest: false,
+      captionId: "tama_hachisu_default"
+    };
 
     const $ = (id) => document.getElementById(id);
 
@@ -1211,12 +1484,25 @@
     }
 
     function normalizeState(nextState) {
+      const today = new Date().toLocaleDateString("sv-SE");
+      const care = { ...INITIAL_STATE.care, ...(nextState.care || {}) };
+      if (care.lastWalkResetDate !== today) {
+        care.walksToday = 0;
+        care.lastWalkResetDate = today;
+      }
       return {
         ...nextState,
         branches: Number(nextState.branches || 0),
         fineBranches: Number(nextState.fineBranches || 0),
         photoBoxes: Number(nextState.photoBoxes || 0),
-        unlockedDestinations: Array.isArray(nextState.unlockedDestinations) ? nextState.unlockedDestinations : []
+        unlockedDestinations: Array.isArray(nextState.unlockedDestinations) ? nextState.unlockedDestinations : [],
+        unlockedFrames: Array.isArray(nextState.unlockedFrames) ? nextState.unlockedFrames : [],
+        museumVisits: nextState.museumVisits && typeof nextState.museumVisits === "object" ? nextState.museumVisits : {},
+        museumAlbums: Array.isArray(nextState.museumAlbums) ? nextState.museumAlbums : [],
+        museumAlbumEnabled: Boolean(nextState.museumAlbumEnabled),
+        care,
+        walk: nextState.walk || null,
+        guestDogs: Array.isArray(nextState.guestDogs) ? nextState.guestDogs : []
       };
     }
 
@@ -1230,6 +1516,8 @@
       if (id === "homeScreen") renderHome();
       if (id === "prepScreen") renderPrep();
       if (id === "branchGameScreen") renderBranchGame();
+      if (id === "museumScreen") renderMuseum();
+      if (id === "museumAlbumScreen") renderMuseumAlbum();
       if (id === "shopScreen") renderShop();
       if (id === "collectionScreen") renderCollection();
     }
@@ -1238,6 +1526,8 @@
       bindEvents();
       processUrlUnlock();
       unlockLuggage();
+      applyCareDecay();
+      ensureGuestDog();
       if (!state.dogName) {
         showScreen("nameScreen");
       } else if (state.pendingReturn) {
@@ -1265,6 +1555,37 @@
       $("goCollectionButton").addEventListener("click", () => showScreen("collectionScreen"));
       $("goShopButton").addEventListener("click", () => showScreen("shopScreen"));
       $("goBranchGameButton").addEventListener("click", startBranchGame);
+      $("goMuseumButton").addEventListener("click", () => showScreen("museumScreen"));
+      $("petDogButton").addEventListener("click", petDog);
+      $("feedDogButton").addEventListener("click", feedDog);
+      $("walkDogButton").addEventListener("click", startDailyWalk);
+      $("checkLocationButton").addEventListener("click", checkMuseumLocation);
+      $("museumUnlockButton").addEventListener("click", () => {
+        unlockDestination(TAMA_MUSEUM_DESTINATION.id);
+        saveState();
+        renderMuseum();
+      });
+      $("startMuseumWalkButton").addEventListener("click", startMuseumWalk);
+      $("albumImageInput").addEventListener("change", handleAlbumImage);
+      $("useMuseumExteriorButton").addEventListener("click", () => {
+        albumDraft.image = null;
+        drawAlbumCanvas();
+      });
+      $("toggleGuestAlbumButton").addEventListener("click", () => {
+        albumDraft.includeGuest = !albumDraft.includeGuest;
+        drawAlbumCanvas();
+      });
+      $("toggleTsukumoButton").addEventListener("click", () => {
+        albumDraft.showTsukumo = !albumDraft.showTsukumo;
+        drawAlbumCanvas();
+      });
+      document.querySelectorAll("[data-dog-position]").forEach((button) => {
+        button.addEventListener("click", () => {
+          albumDraft.dogPosition = button.dataset.dogPosition;
+          drawAlbumCanvas();
+        });
+      });
+      $("saveAlbumButton").addEventListener("click", saveMuseumAlbum);
       $("shopUnlockCodeButton").addEventListener("click", () => handleUnlockCode("shopUnlockCodeInput", "shopUnlockMessage"));
       $("leaveBranchGameButton").addEventListener("click", () => {
         stopBranchGame(false);
@@ -1276,6 +1597,9 @@
           showScreen("homeScreen");
         });
       });
+      document.querySelectorAll("[data-nav='museum']").forEach((button) => {
+        button.addEventListener("click", () => showScreen("museumScreen"));
+      });
       $("dogButton").addEventListener("click", showDogSpeech);
       $("departButton").addEventListener("click", depart);
       $("receiveButton").addEventListener("click", receiveReturn);
@@ -1284,7 +1608,7 @@
       $("resetButton").addEventListener("click", () => {
         if (!confirm("最初からやり直しますか？")) return;
         localStorage.removeItem(STORAGE_KEY);
-        state = { ...INITIAL_STATE };
+        state = normalizeState({ ...INITIAL_STATE, care: { ...INITIAL_STATE.care } });
         selectedLuggage = null;
         stopBranchGame(false);
         showScreen("nameScreen");
@@ -1294,8 +1618,11 @@
     function startTicker() {
       clearInterval(timerId);
       timerId = setInterval(() => {
+        applyCareDecay();
+        checkWalk();
         checkJourney();
         if ($("homeScreen").classList.contains("active")) renderHome();
+        if ($("museumScreen").classList.contains("active")) renderMuseum();
       }, 1000);
     }
 
@@ -1303,6 +1630,7 @@
       const params = new URLSearchParams(window.location.search);
       if (params.get("unlock") === MUSEUM_UNLOCK_CODE) {
         unlockDestination(TAMA_MUSEUM_DESTINATION.id);
+        pendingMuseumUnlockNotice = true;
         history.replaceState(null, "", window.location.pathname);
       }
     }
@@ -1352,11 +1680,495 @@
         $("statusText").textContent = `${state.dogName}が帰宅しています。`;
         $("goPrepButton").disabled = false;
       }
+      if (state.walk) {
+        const remaining = getRemainingMs(state.walk);
+        $("statusTitle").textContent = state.walk.type === "museum" ? "ミュージアム散歩中..." : "散歩中...";
+        $("statusText").textContent = remaining > 0
+          ? `帰ってくるまであと ${formatRemaining(remaining)}`
+          : "そろそろ戻ってきそうです。";
+        $("goPrepButton").disabled = true;
+      }
+      renderCarePanel();
+      renderGuestPanel();
+      renderEventGuide();
+    }
+
+    function renderEventGuide() {
+      const guide = $("eventGuide");
+      const tamaUnlocked = isDestinationUnlocked(TAMA_MUSEUM_DESTINATION.id);
+      const firstTamaVisit = tamaUnlocked && !state.collected.includes("hachisu_tamari");
+      if (!tamaUnlocked || state.journey || state.walk) {
+        guide.classList.add("hidden");
+        guide.innerHTML = "";
+        return;
+      }
+      guide.classList.remove("hidden");
+      guide.innerHTML = firstTamaVisit
+        ? `<strong>${pendingMuseumUnlockNotice ? "たましん美術館への旅先がひらきました" : "館限定の旅先がひらいています"}</strong><p>「旅に出す」か「ミュージアム」から、蜂巣のたまりに会う準備ができます。</p>`
+        : `<strong>たましん美術館へ再訪できます</strong><p>ミュージアム散歩で、写真カードも残せます。</p>`;
+      pendingMuseumUnlockNotice = false;
+    }
+
+    function renderCarePanel() {
+      const care = state.care;
+      const disabled = Boolean(state.journey || state.walk);
+      $("careTitle").textContent = dogCareStatus().title;
+      $("careMessage").textContent = state.walk
+        ? "いまは一緒に散歩しています。"
+        : dogCareStatus().text;
+      $("careMeters").innerHTML = [
+        ["なかよし", care.friendship],
+        ["元気", care.energy],
+        ["おなか", care.hunger],
+        ["ごきげん", care.mood]
+      ].map(([label, value]) => `
+        <div class="meter">
+          <span><strong>${label}</strong><em>${value}</em></span>
+          <div class="meter-bar"><i class="meter-fill" style="width:${clamp(value, 0, 100)}%"></i></div>
+        </div>
+      `).join("");
+      $("petDogButton").disabled = disabled;
+      $("feedDogButton").disabled = disabled || state.branches < 2;
+      $("walkDogButton").disabled = disabled || care.energy < 20 || care.hunger < 20 || care.walksToday >= 3;
+    }
+
+    function renderGuestPanel() {
+      const panel = $("guestPanel");
+      const guest = state.guestDogs[0];
+      if (!guest || state.journey) {
+        panel.classList.add("hidden");
+        panel.innerHTML = "";
+        return;
+      }
+      panel.classList.remove("hidden");
+      panel.innerHTML = `
+        <h2>${guest.name}が遊びに来ています</h2>
+        <p class="small-note">${guest.line}</p>
+        <div class="guest-actions">
+          <button class="quiet" id="petGuestButton" ${guest.actions.petCount >= 3 ? "disabled" : ""}>なでる</button>
+          <button class="quiet" id="feedGuestButton" ${guest.actions.fed || state.branches < 2 ? "disabled" : ""}>ご飯</button>
+          <button class="primary" id="walkGuestButton" ${guest.actions.walked || state.walk || !isDestinationUnlocked(TAMA_MUSEUM_DESTINATION.id) ? "disabled" : ""}>ミュージアム散歩</button>
+        </div>
+      `;
+      $("petGuestButton").addEventListener("click", petGuestDog);
+      $("feedGuestButton").addEventListener("click", feedGuestDog);
+      $("walkGuestButton").addEventListener("click", () => startMuseumWalk(true));
+    }
+
+    function dogCareStatus() {
+      if (state.journey) return { title: "旅の途中", text: "帰ってきたらお世話できます。" };
+      if (state.walk) return { title: "散歩中", text: "一緒に歩いています。" };
+      const care = state.care;
+      if (care.hunger < 35) return { title: "おなかがすいています", text: "ご飯をあげると元気が戻ります。" };
+      if (care.energy < 30) return { title: "少し眠そうです", text: "今日はゆっくり過ごしてもよさそうです。" };
+      if (care.mood >= 75) return { title: "ごきげんです", text: "うれしそうにしっぽを振っています。" };
+      return { title: "玄関でひと休み", text: "なでたり、ご飯をあげたり、一緒に散歩できます。" };
     }
 
     function renderResources() {
       $("branchCount").textContent = `木のえだ ${state.branches}本`;
       $("fineBranchCount").textContent = `りっぱな木のえだ ${state.fineBranches}本`;
+    }
+
+    function applyCareDecay() {
+      const now = Date.now();
+      const last = state.care.lastDecayAt || now;
+      const elapsedHours = Math.floor((now - last) / (60 * 60 * 1000));
+      if (elapsedHours <= 0) return;
+      state.care.hunger = clamp(state.care.hunger - Math.floor(elapsedHours / 6) * 5, 0, 100);
+      state.care.energy = clamp(state.care.energy - Math.floor(elapsedHours / 12) * 5, 0, 100);
+      state.care.mood = clamp(state.care.mood - Math.floor(elapsedHours / 24) * 10, 0, 100);
+      state.care.lastDecayAt = now;
+      saveState();
+    }
+
+    function markCare() {
+      state.care.lastCareAt = Date.now();
+      state.care.careStreak = Math.max(1, state.care.careStreak || 0);
+    }
+
+    function petDog() {
+      state.care.friendship = clamp(state.care.friendship + 1, 0, 100);
+      state.care.mood = clamp(state.care.mood + 4, 0, 100);
+      markCare();
+      saveState();
+      $("careMessage").textContent = "なでると、うれしそうにしっぽを振りました。";
+      renderHome();
+    }
+
+    function feedDog() {
+      if (state.branches < 2) return;
+      state.branches -= 2;
+      state.care.hunger = clamp(state.care.hunger + 25, 0, 100);
+      state.care.energy = clamp(state.care.energy + 10, 0, 100);
+      state.care.mood = clamp(state.care.mood + 2, 0, 100);
+      markCare();
+      saveState();
+      $("careMessage").textContent = "ご飯を食べて、元気が少し戻りました。";
+      renderHome();
+    }
+
+    function startDailyWalk() {
+      if (state.walk || state.journey) return;
+      if (state.care.energy < 20 || state.care.hunger < 20 || state.care.walksToday >= 3) return;
+      state.care.energy = clamp(state.care.energy - 15, 0, 100);
+      state.care.hunger = clamp(state.care.hunger - 10, 0, 100);
+      state.walk = {
+        type: "daily",
+        startedAt: Date.now(),
+        durationMs: 45 * 1000 * TIME_SCALE,
+        guestId: null
+      };
+      saveState();
+      showScreen("homeScreen");
+    }
+
+    function startMuseumWalk(withGuest = false) {
+      if (state.walk || state.journey) return;
+      if (!isDestinationUnlocked(TAMA_MUSEUM_DESTINATION.id)) {
+        showScreen("museumScreen");
+        return;
+      }
+      state.care.energy = clamp(state.care.energy - 8, 0, 100);
+      state.care.hunger = clamp(state.care.hunger - 4, 0, 100);
+      state.walk = {
+        type: "museum",
+        museumId: TAMA_MUSEUM_DESTINATION.id,
+        startedAt: Date.now(),
+        durationMs: 30 * 1000 * TIME_SCALE,
+        guestId: withGuest && state.guestDogs[0] ? state.guestDogs[0].id : null
+      };
+      saveState();
+      showScreen("homeScreen");
+    }
+
+    function checkWalk() {
+      if (!state.walk) return;
+      if (getRemainingMs(state.walk) > 0) return;
+      const walk = state.walk;
+      state.walk = null;
+      if (walk.type === "museum") {
+        completeMuseumWalk(walk);
+      } else {
+        completeDailyWalk();
+      }
+    }
+
+    function completeDailyWalk() {
+      const branches = randomInt(1, 3);
+      const fine = Math.random() < 0.12 ? 1 : 0;
+      state.branches += branches;
+      state.fineBranches += fine;
+      state.care.friendship = clamp(state.care.friendship + 3, 0, 100);
+      state.care.mood = clamp(state.care.mood + 6, 0, 100);
+      state.care.walksToday += 1;
+      markCare();
+      saveState();
+      $("careMessage").textContent = fine
+        ? `散歩で木のえだ${branches}本と、りっぱな木のえだ1本を見つけました。`
+        : `散歩で木のえだ${branches}本を見つけました。`;
+    }
+
+    function completeMuseumWalk(walk) {
+      state.care.friendship = clamp(state.care.friendship + 3, 0, 100);
+      state.care.mood = clamp(state.care.mood + 5, 0, 100);
+      state.museumAlbumEnabled = true;
+      if (!state.unlockedFrames.includes("tama_basic")) state.unlockedFrames.push("tama_basic");
+      if (walk.guestId) {
+        const guest = state.guestDogs.find((item) => item.id === walk.guestId);
+        if (guest) guest.actions.walked = true;
+      }
+      markCare();
+      saveState();
+      albumDraft.includeGuest = Boolean(walk.guestId);
+      showScreen("museumAlbumScreen");
+    }
+
+    function ensureGuestDog() {
+      if (state.guestDogs.length) return;
+      const guest = pick(GUEST_DOGS);
+      state.guestDogs = [{
+        ...guest,
+        visitStartedAt: Date.now(),
+        actions: { petCount: 0, fed: false, walked: false }
+      }];
+      saveState();
+    }
+
+    function petGuestDog() {
+      const guest = state.guestDogs[0];
+      if (!guest || guest.actions.petCount >= 3) return;
+      guest.actions.petCount += 1;
+      if (Math.random() < 0.25) state.branches += 1;
+      saveState();
+      renderHome();
+    }
+
+    function feedGuestDog() {
+      const guest = state.guestDogs[0];
+      if (!guest || guest.actions.fed || state.branches < 2) return;
+      state.branches -= 2;
+      guest.actions.fed = true;
+      saveState();
+      renderHome();
+    }
+
+    function renderMuseum() {
+      const visit = state.museumVisits[TAMA_MUSEUM_DESTINATION.id];
+      const unlocked = isDestinationUnlocked(TAMA_MUSEUM_DESTINATION.id);
+      const checkedIn = Boolean(visit && visit.checkedInAt);
+      const status = checkedIn
+        ? "たましん美術館にチェックイン済みです。ミュージアム散歩で写真カードを残せます。"
+        : unlocked
+          ? "館内QRで解放済みです。現地チェックイン前でも、外観風画像でミュージアム散歩カードを作れます。"
+          : "位置情報を確認するか、館内QRのことばで館限定旅先を解放できます。";
+      $("museumStatusCard").innerHTML = `<strong>${checkedIn ? "チェックイン済み" : unlocked ? "QR解放済み" : "未解放"}</strong><span>${status}</span>`;
+      $("startMuseumWalkButton").disabled = !unlocked && !checkedIn;
+    }
+
+    function checkMuseumLocation() {
+      const museum = MUSEUMS[0];
+      if (!navigator.geolocation) {
+        $("museumStatusCard").innerHTML = `<strong>位置情報が使えません</strong><span>この端末では位置情報を使えません。QR解放として進められます。</span>`;
+        return;
+      }
+      if (museum.latitude === null || museum.longitude === null) {
+        $("museumStatusCard").innerHTML = `<strong>デモ運用中</strong><span>正式な緯度経度は未設定です。今回はQR解放として検証できます。</span>`;
+        unlockDestination(TAMA_MUSEUM_DESTINATION.id);
+        saveState();
+        renderMuseum();
+        return;
+      }
+      $("museumStatusCard").innerHTML = `<strong>位置情報を確認しています</strong><span>ブラウザの確認画面で許可を選んでください。</span>`;
+      navigator.geolocation.getCurrentPosition((position) => {
+        const distance = distanceMeters(position.coords.latitude, position.coords.longitude, museum.latitude, museum.longitude);
+        const near = distance <= museum.radiusMeters;
+        if (near) {
+          state.museumVisits[museum.id] = {
+            checkedInAt: new Date().toISOString(),
+            lastNearAt: new Date().toISOString(),
+            distanceMeters: Math.round(distance),
+            source: "geolocation"
+          };
+          unlockDestination(TAMA_MUSEUM_DESTINATION.id);
+          state.museumAlbumEnabled = true;
+          if (!state.unlockedFrames.includes("tama_basic")) state.unlockedFrames.push("tama_basic");
+          saveState();
+        }
+        $("museumStatusCard").innerHTML = near
+          ? `<strong>チェックインしました</strong><span>たましん美術館の記録を作れます。</span>`
+          : `<strong>まだ近くではないようです</strong><span>対象ミュージアムの近くで再度確認してください。</span>`;
+        renderMuseum();
+      }, () => {
+        $("museumStatusCard").innerHTML = `<strong>位置情報が許可されていません</strong><span>ブラウザ設定を確認するか、QR解放として進められます。</span>`;
+      }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 });
+    }
+
+    function distanceMeters(lat1, lon1, lat2, lon2) {
+      const radius = 6371000;
+      const toRad = (deg) => deg * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat / 2) ** 2
+        + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2))
+        * Math.sin(dLon / 2) ** 2;
+      return radius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function renderMuseumAlbum() {
+      renderCaptionChoices();
+      $("toggleGuestAlbumButton").textContent = albumDraft.includeGuest ? "よそのワンコ同席中" : "よそのワンコ同席";
+      $("toggleTsukumoButton").textContent = albumDraft.showTsukumo ? "付喪神あり" : "付喪神なし";
+      drawAlbumCanvas();
+    }
+
+    function renderCaptionChoices() {
+      $("captionChoices").innerHTML = CAPTIONS.map((caption) => `
+        <button class="${albumDraft.captionId === caption.id ? "secondary" : "quiet"}" data-caption-id="${caption.id}">${caption.text}</button>
+      `).join("");
+      document.querySelectorAll("[data-caption-id]").forEach((button) => {
+        button.addEventListener("click", () => {
+          albumDraft.captionId = button.dataset.captionId;
+          renderMuseumAlbum();
+        });
+      });
+    }
+
+    function handleAlbumImage(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          albumDraft.image = img;
+          drawAlbumCanvas();
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function drawAlbumCanvas() {
+      const canvas = $("albumCanvas");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawAlbumBackground(ctx, canvas);
+      drawAlbumFrame(ctx, canvas);
+      drawAlbumDog(ctx, canvas, albumDraft.dogPosition, "#fffdf9");
+      if (albumDraft.includeGuest) drawAlbumDog(ctx, canvas, "bottom_left", "#F2D7D5", 0.82);
+      if (albumDraft.showTsukumo) drawAlbumTsukumo(ctx, canvas);
+      drawAlbumText(ctx, canvas);
+    }
+
+    function drawAlbumBackground(ctx, canvas) {
+      if (albumDraft.image) {
+        const img = albumDraft.image;
+        const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+        const width = img.width * scale;
+        const height = img.height * scale;
+        ctx.drawImage(img, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
+        return;
+      }
+      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grad.addColorStop(0, "#DCE7EA");
+      grad.addColorStop(0.56, "#F5F0E8");
+      grad.addColorStop(1, "#D9C69A");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#fffdf9";
+      ctx.strokeStyle = "#1A3A5C";
+      ctx.lineWidth = 18;
+      ctx.fillRect(190, 250, 700, 350);
+      ctx.strokeRect(190, 250, 700, 350);
+      ctx.fillStyle = "#8B7355";
+      for (let y = 330; y <= 490; y += 78) {
+        for (let x = 330; x <= 700; x += 84) {
+          ctx.beginPath();
+          ctx.arc(x, y, 36, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.fillStyle = "rgba(245, 200, 66, 0.28)";
+      ctx.fillRect(240, 620, 600, 80);
+    }
+
+    function drawAlbumFrame(ctx, canvas) {
+      ctx.strokeStyle = "#F5C842";
+      ctx.lineWidth = 26;
+      ctx.strokeRect(38, 38, canvas.width - 76, canvas.height - 76);
+      ctx.strokeStyle = "#1A3A5C";
+      ctx.lineWidth = 6;
+      ctx.strokeRect(70, 70, canvas.width - 140, canvas.height - 140);
+      const fade = ctx.createLinearGradient(0, 650, 0, canvas.height);
+      fade.addColorStop(0, "rgba(255,253,249,0)");
+      fade.addColorStop(1, "rgba(255,253,249,0.92)");
+      ctx.fillStyle = fade;
+      ctx.fillRect(0, 650, canvas.width, 430);
+    }
+
+    function drawAlbumDog(ctx, canvas, position, fill = "#fffdf9", alpha = 1) {
+      const positions = {
+        bottom_left: [260, 760],
+        bottom_center: [540, 760],
+        bottom_right: [820, 760]
+      };
+      const [x, y] = positions[position] || positions.bottom_center;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = fill;
+      ctx.strokeStyle = "#2D2D2D";
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.ellipse(x, y, 105, 88, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(x - 62, y - 92, 36, 62, -0.45, 0, Math.PI * 2);
+      ctx.ellipse(x + 62, y - 92, 36, 62, 0.45, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#2D2D2D";
+      ctx.beginPath();
+      ctx.arc(x - 36, y - 18, 9, 0, Math.PI * 2);
+      ctx.arc(x + 36, y - 18, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(x, y + 10, 14, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawAlbumTsukumo(ctx) {
+      ctx.save();
+      ctx.translate(792, 236);
+      ctx.fillStyle = "#8B7355";
+      ctx.strokeStyle = "#2D2D2D";
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(0, 0, 84, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#F5C842";
+      for (let i = 0; i < 6; i += 1) {
+        ctx.beginPath();
+        ctx.arc(Math.cos(i) * 48, Math.sin(i) * 42, 18, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawAlbumText(ctx, canvas) {
+      const caption = CAPTIONS.find((item) => item.id === albumDraft.captionId) || CAPTIONS[0];
+      ctx.fillStyle = "#1A3A5C";
+      ctx.font = "700 48px serif";
+      ctx.textAlign = "center";
+      ctx.fillText("たましん美術館", canvas.width / 2, 900);
+      ctx.font = "400 30px serif";
+      wrapCanvasText(ctx, caption.text, canvas.width / 2, 950, 820, 42);
+      ctx.font = "400 24px serif";
+      ctx.fillText(new Date().toLocaleDateString("ja-JP"), canvas.width / 2, 1030);
+    }
+
+    function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
+      let line = "";
+      const chars = [...text];
+      chars.forEach((char, index) => {
+        const test = line + char;
+        if (ctx.measureText(test).width > maxWidth && line) {
+          ctx.fillText(line, x, y);
+          line = char;
+          y += lineHeight;
+        } else {
+          line = test;
+        }
+        if (index === chars.length - 1) ctx.fillText(line, x, y);
+      });
+    }
+
+    function saveMuseumAlbum() {
+      const canvas = $("albumCanvas");
+      const caption = CAPTIONS.find((item) => item.id === albumDraft.captionId) || CAPTIONS[0];
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+      const card = {
+        id: `museum-album-${Date.now()}`,
+        type: "museum_photo",
+        date: new Date().toISOString(),
+        place: "たましん美術館",
+        title: `${state.dogName}のミュージアム散歩`,
+        text: caption.text,
+        scene: "museum",
+        imageDataUrl: dataUrl,
+        captionId: caption.id,
+        captionText: caption.text,
+        guestDog: albumDraft.includeGuest ? state.guestDogs[0]?.name : null
+      };
+      state.cards.unshift(card);
+      state.museumAlbums.unshift(card.id);
+      if (!state.collected.includes("hachisu_tamari")) state.collected.push("hachisu_tamari");
+      saveState();
+      $("albumMessage").textContent = "写真カードをアルバムに保存しました。";
+      renderCollection();
     }
 
     function renderShop() {
@@ -1439,7 +2251,7 @@
       const hint = $("museumDestinationHint");
       hint.classList.toggle("locked", !unlocked);
       hint.innerHTML = unlocked
-        ? `<strong>館限定旅先：${TAMA_MUSEUM_DESTINATION.name}</strong><span class="badge">★★★ 館限定</span><p class="small-note">${TAMA_MUSEUM_DESTINATION.description}。解放後はどの荷物でも向かえます。初回は必ず出会えます。</p>`
+        ? `<strong>館限定旅先：${TAMA_MUSEUM_DESTINATION.name}</strong><span class="badge">★★★ 館限定</span><p class="small-note">${TAMA_MUSEUM_DESTINATION.description}。まだ出会っていない場合は、どの荷物でも次の旅で必ず会えます。</p>`
         : `<strong>ロック中：館限定旅先</strong><p class="small-note">？たましん美術館で出会えるかも。特別なことば、または館内QRで解放できます。</p>`;
     }
 
@@ -1737,9 +2549,10 @@
       return `
         <article class="trip-card">
           <h3>${card.place}</h3>
-          <div class="scene ${card.scene}"></div>
+          ${card.imageDataUrl ? `<img class="album-image" src="${card.imageDataUrl}" alt="${card.place}の写真カード">` : `<div class="scene ${card.scene}"></div>`}
           <p><strong>${card.title}</strong></p>
           <p>${card.text}</p>
+          ${card.guestDog ? `<p class="small-note">${card.guestDog}も一緒に散歩しました。</p>` : ""}
           <p class="small-note">${date}</p>
         </article>
       `;
@@ -1779,6 +2592,10 @@
 
     function randomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
     }
 
     function tsukumoSvg(id) {
