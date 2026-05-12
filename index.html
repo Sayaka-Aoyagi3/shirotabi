@@ -2163,7 +2163,8 @@
       if ($("kamadoButton").disabled) $("foodMenu").classList.add("hidden");
       const walkBlock = dailyWalkBlockReason();
       $("walkDogButton").disabled = disabled || Boolean(walkBlock);
-      $("walkDogButton").textContent = walkBlock ? "お休み" : "散歩";
+      $("walkDogButton").textContent = dailyWalkButtonText(walkBlock);
+      $("walkDogButton").title = walkBlock || "一緒に散歩します";
       $("careDetailButton").disabled = false;
       document.querySelectorAll("[data-food-cost]").forEach((button) => {
         const cost = Number(button.dataset.foodCost);
@@ -2370,6 +2371,17 @@
         if (remaining > 0) return `さっき散歩したばかりです。次の散歩まであと ${formatRemaining(remaining)}。`;
       }
       return "";
+    }
+
+    function dailyWalkButtonText(blockReason) {
+      if (!blockReason) return "散歩";
+      if (blockReason.includes("寝ています")) return "睡眠中";
+      if (blockReason.includes("もう夜")) return "夜は休み";
+      if (blockReason.includes("疲れて")) return "休憩";
+      if (blockReason.includes("おなか")) return "空腹";
+      if (blockReason.includes("たくさん")) return "本日終了";
+      const remaining = blockReason.match(/あと ([^。]+)/);
+      return remaining ? `あと${compactRemainingText(remaining[1])}` : "お休み";
     }
 
     function currentNightEvent(museumId) {
@@ -3159,6 +3171,14 @@
       const minutes = Math.floor(totalSeconds / 60);
       const seconds = totalSeconds % 60;
       return `${minutes}分${String(seconds).padStart(2, "0")}秒`;
+    }
+
+    function compactRemainingText(text) {
+      const minuteMatch = text.match(/(\d+)分/);
+      if (!minuteMatch) return text;
+      const minutes = Number(minuteMatch[1]);
+      if (minutes >= 60) return `${Math.ceil(minutes / 60)}時間`;
+      return `${Math.max(1, minutes)}分`;
     }
 
     function showDogSpeech() {
