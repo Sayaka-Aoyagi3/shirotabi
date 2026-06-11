@@ -1,0 +1,30 @@
+{
+  "_comment": "文学ジャンルのお土産『本』のバリエーション。タイトルは実在の名作の犬パロディ（すべてパブリックドメイン作品が元ネタ）。表紙色と組み合わせて生成する。",
+  "covers": [
+    { "id": "ai",      "name": "藍",   "hex": "#1A3A5C" },
+    { "id": "shu",     "name": "朱",   "hex": "#C0392B" },
+    { "id": "wakakusa","name": "若草", "hex": "#7BA05B" },
+    { "id": "yamabuki","name": "山吹", "hex": "#E8A317" },
+    { "id": "nibi",    "name": "鈍色", "hex": "#6B6B6B" },
+    { "id": "sakura",  "name": "桜",   "hex": "#F2D7D5" }
+  ],
+  "titles": [
+    { "id": "ginga",     "title": "銀河鉄道と犬",         "motif": "銀河鉄道の夜" },
+    { "id": "inugusa",   "title": "犬草子",               "motif": "枕草子" },
+    { "id": "inugimi",   "title": "犬君物語",             "motif": "源氏物語" },
+    { "id": "wagahai",   "title": "吾輩は犬である",       "motif": "吾輩は猫である" },
+    { "id": "hashire",   "title": "走れポチ",             "motif": "走れメロス" },
+    { "id": "shippo",    "title": "しっぽのほそ道",       "motif": "おくのほそ道" },
+    { "id": "yabu",      "title": "藪の中の枝",           "motif": "藪の中" },
+    { "id": "goukaku",   "title": "ワンコ合格",           "motif": "人間失格" },
+    { "id": "chikusho",  "title": "畜生門",               "motif": "羅生門" },
+    { "id": "tabekurabe","title": "たべくらべ",           "motif": "たけくらべ" },
+    { "id": "ouji",      "title": "犬の王子さま",         "motif": "星の王子さま" },
+    { "id": "chumon",    "title": "注文の多いドッグラン", "motif": "注文の多い料理店" },
+    { "id": "akage",     "title": "赤毛のワン",           "motif": "赤毛のアン" },
+    { "id": "sanpo",     "title": "散歩2万里",            "motif": "海底2万里" },
+    { "id": "fushigi",   "title": "不思議の国のワンコ",   "motif": "不思議の国のアリス" },
+    { "id": "shitsuke",  "title": "しつけと罰",           "motif": "罪と罰" },
+    { "id": "roken",     "title": "老犬と海",             "motif": "老人と海" }
+  ]
+}

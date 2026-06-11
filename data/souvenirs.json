@@ -1,0 +1,47 @@
+{
+  "sv_postcard_common": {
+    "name": "絵葉書",
+    "genre": "all",
+    "rarity": "common",
+    "note": "全館共通。Lv1館でも必ず持ち帰る"
+  },
+
+  "sv_kamon_seal": { "name": "家紋シール", "genre": "歴史", "rarity": "common" },
+  "sv_komonjo": { "name": "古文書の写し", "genre": "歴史", "rarity": "common" },
+  "sv_utsuwa": { "name": "器", "genre": "歴史", "rarity": "uncommon", "note": "曜変天目茶碗・唐物茄子茶入付藻茄子など" },
+  "sv_sword": { "name": "刀剣", "genre": "歴史", "rarity": "uncommon", "note": "太刀・薙刀・剣など" },
+
+  "sv_painting": { "name": "名画", "genre": "美術", "rarity": "uncommon", "note": "部屋に飾れる" },
+  "sv_kakejiku": { "name": "掛け軸", "genre": "美術", "rarity": "uncommon" },
+  "sv_sculpture": { "name": "彫刻品", "genre": "美術", "rarity": "uncommon", "note": "アポロン像・サモトラケのニケ・仏像など" },
+
+  "sv_folkcraft": { "name": "郷土玩具のミニチュア", "genre": "民俗", "rarity": "common" },
+  "sv_costume": { "name": "民族衣装", "genre": "民俗", "rarity": "uncommon", "note": "十二単・狩衣など" },
+  "sv_minggu": { "name": "民具", "genre": "民俗", "rarity": "common", "note": "農具など" },
+
+  "sv_book": { "name": "本", "genre": "文学", "rarity": "common", "note": "表紙の色×タイトルでバリエーション" },
+
+  "sv_element": { "name": "元素記号オブジェ", "genre": "科学技術", "rarity": "common" },
+  "sv_planetarium": { "name": "プラネタリウムの模型", "genre": "科学技術", "rarity": "uncommon" },
+  "sv_globe": { "name": "地球儀", "genre": "科学技術", "rarity": "uncommon" },
+
+  "sv_mineral": { "name": "鉱石のかけら", "genre": "自然科学", "rarity": "common" },
+  "sv_herbarium": { "name": "植物標本カード", "genre": "自然科学", "rarity": "common" },
+  "sv_fossil": { "name": "化石", "genre": "自然科学", "rarity": "uncommon" },
+  "sv_feather": { "name": "鳥の羽", "genre": "自然科学", "rarity": "common" },
+  "sv_leucochloridium": { "name": "ロイコクロリディウム", "genre": "自然科学", "rarity": "rare" },
+
+  "sv_aquarium_tank": { "name": "水槽", "genre": "水族館", "rarity": "rare", "onceOnly": true, "note": "初回のみ入手可能" },
+  "sv_fish": { "name": "魚", "genre": "水族館", "rarity": "common" },
+  "sv_aquatic_plant": { "name": "水草", "genre": "水族館", "rarity": "common" },
+
+  "sv_watering_can": { "name": "じょうろ", "genre": "植物園", "rarity": "common" },
+  "sv_flower": { "name": "草花", "genre": "植物園", "rarity": "common" },
+
+  "sv_stuffed_animal": { "name": "動物のぬいぐるみ", "genre": "動物園", "rarity": "common" },
+
+  "sv_mystery_stone": { "name": "不思議な石", "genre": "謎のパラダイス", "rarity": "uncommon" },
+  "sv_pager": { "name": "ポケベル", "genre": "謎のパラダイス", "rarity": "rare" },
+  "sv_one_sock": { "name": "靴下（かたっぽ）", "genre": "謎のパラダイス", "rarity": "common" },
+  "sv_stag_beetle": { "name": "クワガタ", "genre": "謎のパラダイス", "rarity": "uncommon" }
+}

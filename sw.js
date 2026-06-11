@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shirotabi-v18';
+const CACHE_NAME = 'shirotabi-v19';
 const CACHE_FILES = [
   '/',
   '/index.html',
@@ -6,7 +6,16 @@ const CACHE_FILES = [
   '/icon-192.png',
   '/icon-512.png',
   '/assets/images/sirotabi_house-outside.png',
-  '/assets/images/sirotabi_house-entrance.png'
+  '/assets/images/sirotabi_house-entrance.png',
+  '/js/game-museums.js',
+  '/js/player-progress.js',
+  '/js/shadow-multi.js',
+  '/data/souvenirs.json',
+  '/data/luggage.json',
+  '/data/prefectures.json',
+  '/data/guest-dogs.json',
+  '/data/books.json',
+  '/data/game-museums-data.json'
 ];
 
 const scopedUrl = (path) => {

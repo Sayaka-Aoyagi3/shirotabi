@@ -1,0 +1,4 @@
+{
+  "_comment": "特別館のみ手動定義。museumMapIdはmuseums.jsonのidと対応する。",
+  "museums": {}
+}

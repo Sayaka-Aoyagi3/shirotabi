@@ -1,0 +1,17 @@
+[
+  { "id": "guest_mugi",  "name": "むぎ",  "color": "cream", "line": "玄関でしっぽを振っています。" },
+  { "id": "guest_suzu",  "name": "すず",  "color": "white", "line": "少しだけ遊びに来ました。" },
+  { "id": "guest_ao",    "name": "あお",  "color": "gray",  "line": "散歩の気配につられて来ました。" },
+  { "id": "guest_hana",  "name": "はな",  "color": "cream", "line": "いい匂いがしたので来てみました。" },
+  { "id": "guest_kuri",  "name": "くり",  "color": "brown", "line": "遠くからでも分かりました。" },
+  { "id": "guest_shiro", "name": "しろ",  "color": "white", "line": "同じ名前かもしれません。" },
+  { "id": "guest_mochi", "name": "もち",  "color": "cream", "line": "ふらっと寄り道してしまいました。" },
+  { "id": "guest_sumi",  "name": "すみ",  "color": "gray",  "line": "少し疲れたので休んでいます。" },
+  { "id": "guest_tsuyu", "name": "つゆ",  "color": "white", "line": "雨上がりに来てみました。" },
+  { "id": "guest_kage",  "name": "かげ",  "color": "gray",  "line": "日陰を探していたらここでした。" },
+  { "id": "guest_niko",  "name": "にこ",  "color": "brown", "line": "いつも通りかかる道です。" },
+  { "id": "guest_fuji",  "name": "ふじ",  "color": "cream", "line": "遠くから来ました。" },
+  { "id": "guest_koto",  "name": "こと",  "color": "white", "line": "静かな場所が好きです。" },
+  { "id": "guest_shio",  "name": "しお",  "color": "gray",  "line": "海の方から来たみたいです。" },
+  { "id": "guest_hoshi", "name": "ほし",  "color": "brown", "line": "夜に出発したので今頃着きました。" }
+]

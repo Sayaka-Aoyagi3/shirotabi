@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>しろたび</title>
   <link rel="manifest" href="manifest.json">
+  <script src="js/game-museums.js"></script>
+  <script src="js/player-progress.js"></script>
+  <script src="js/shadow-multi.js"></script>
   <meta name="theme-color" content="#1A3A5C">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -851,6 +854,10 @@
       background: #e5e7ea;
     }
 
+    .guest-dog-figure.brown {
+      background: #d9b58a;
+    }
+
     #homeScreen .event-guide {
       gap: 3px;
       margin: 0;
@@ -1592,14 +1599,29 @@
         </div>
       </header>
       <div class="sheet">
-        <div class="outing-shortcuts">
-          <button class="quiet" id="prepBranchGameButton">こえだ探し</button>
-          <button class="quiet" id="prepMuseumButton">ミュージアム</button>
+        <div class="segmented" id="prepModeTabs">
+          <button class="active" id="prepModeFurari">ふらり旅</button>
+          <button id="prepModeMuseum">ミュージアム旅</button>
         </div>
-        <div id="luggageList" class="luggage-list"></div>
-        <div id="museumDestinationHint" class="destination-card locked"></div>
-        <div class="hint" id="luggageHint">荷物を選ぶと、旅先の気配がわかります。</div>
-        <button class="primary" id="departButton" disabled>行ってらっしゃい</button>
+        <div id="furariPrep">
+          <div class="outing-shortcuts">
+            <button class="quiet" id="prepBranchGameButton">こえだ探し</button>
+            <button class="quiet" id="prepMuseumButton">ミュージアム</button>
+          </div>
+          <div id="luggageList" class="luggage-list"></div>
+          <div id="museumDestinationHint" class="destination-card locked"></div>
+          <div class="hint" id="luggageHint">荷物を選ぶと、旅先の気配がわかります。</div>
+          <button class="primary" id="departButton" disabled>行ってらっしゃい</button>
+        </div>
+        <div id="museumPrep" class="hidden">
+          <div id="prefecturePanel" class="hidden">
+            <p class="small-note">おうちのある都道府県を教えてください。旅の距離の計算にだけ使い、この端末の外には送りません。</p>
+            <select id="prefectureSelect"></select>
+          </div>
+          <div id="museumLuggageList" class="luggage-list"></div>
+          <div class="hint" id="museumLuggageHint">荷物を選ぶと、行き先の気配がわかります。なにも持たずに出かけることもできます（近場だけ）。</div>
+          <button class="primary" id="museumDepartButton" disabled>行ってらっしゃい</button>
+        </div>
         <p class="small-note">デモでは旅時間を1/10に短縮しています。実時間に戻す場合は JavaScript の <code>TIME_SCALE</code> を <code>1</code> にしてください。</p>
       </div>
     </section>
@@ -1734,9 +1756,13 @@
         <div class="book-tabs">
           <button class="tab active" id="tsukumoTab">付喪神</button>
           <button class="tab" id="cardsTab">旅の記録</button>
+          <button class="tab" id="postcardsTab">絵葉書</button>
+          <button class="tab" id="souvenirsTab">おみやげ</button>
         </div>
         <div id="tsukumoPanel" class="tsukumo-grid"></div>
         <div id="cardsPanel" class="card-list hidden"></div>
+        <div id="postcardsPanel" class="card-list hidden"></div>
+        <div id="souvenirsPanel" class="tsukumo-grid hidden"></div>
         <div id="detailPanel" class="detail-box hidden"></div>
       </div>
     </section>
@@ -1812,8 +1838,51 @@
     const GUEST_DOGS = [
       { id: "guest_mugi", name: "むぎ", color: "cream", line: "玄関でしっぽを振っています。" },
       { id: "guest_suzu", name: "すず", color: "white", line: "少しだけ遊びに来ました。" },
-      { id: "guest_ao", name: "あお", color: "gray", line: "散歩の気配につられて来ました。" }
+      { id: "guest_ao", name: "あお", color: "gray", line: "散歩の気配につられて来ました。" },
+      { id: "guest_hana", name: "はな", color: "cream", line: "いい匂いがしたので来てみました。" },
+      { id: "guest_kuri", name: "くり", color: "brown", line: "遠くからでも分かりました。" },
+      { id: "guest_shiro", name: "しろ", color: "white", line: "同じ名前かもしれません。" },
+      { id: "guest_mochi", name: "もち", color: "cream", line: "ふらっと寄り道してしまいました。" },
+      { id: "guest_sumi", name: "すみ", color: "gray", line: "少し疲れたので休んでいます。" },
+      { id: "guest_tsuyu", name: "つゆ", color: "white", line: "雨上がりに来てみました。" },
+      { id: "guest_kage", name: "かげ", color: "gray", line: "日陰を探していたらここでした。" },
+      { id: "guest_niko", name: "にこ", color: "brown", line: "いつも通りかかる道です。" },
+      { id: "guest_fuji", name: "ふじ", color: "cream", line: "遠くから来ました。" },
+      { id: "guest_koto", name: "こと", color: "white", line: "静かな場所が好きです。" },
+      { id: "guest_shio", name: "しお", color: "gray", line: "海の方から来たみたいです。" },
+      { id: "guest_hoshi", name: "ほし", color: "brown", line: "夜に出発したので今頃着きました。" }
     ];
+
+    // ミュージアム旅の荷物11種（消耗品）。ジャンルとの対応は js/game-museums.js と一致させる
+    const MUSEUM_LUGGAGE = [
+      { id: "lg_notebook",     name: "手帳",           icon: "📔", genre: "歴史" },
+      { id: "lg_sketchbook",   name: "スケッチブック", icon: "🖼️", genre: "美術" },
+      { id: "lg_furoshiki",    name: "風呂敷",         icon: "🧺", genre: "民俗" },
+      { id: "lg_bunkobon",     name: "文庫本",         icon: "📖", genre: "文学" },
+      { id: "lg_tools",        name: "工具",           icon: "🔧", genre: "科学技術" },
+      { id: "lg_loupe",        name: "虫眼鏡",         icon: "🔍", genre: "自然科学" },
+      { id: "lg_water_bottle", name: "水筒",           icon: "🥤", genre: "水族館" },
+      { id: "lg_gloves",       name: "軍手",           icon: "🧤", genre: "植物園" },
+      { id: "lg_snack",        name: "おやつ",         icon: "🍪", genre: "動物園" },
+      { id: "lg_lantern",      name: "ランタン",       icon: "🏮", genre: "謎のパラダイス" },
+      { id: "lg_backpack",     name: "リュック",       icon: "🎒", genre: "総合" }
+    ];
+
+    const DISTANCE_TIER_FEEL = {
+      nearby: "近くをぶらぶらしてきそう",
+      local: "となり町くらいまで行きそう",
+      regional: "ちょっと遠くまで行きそう",
+      far: "ずいぶん遠くまで行きそう",
+      remote: "うんと遠くまで行きそう"
+    };
+
+    const DISTANCE_TIER_RETURN_FEEL = {
+      nearby: "近くをぶらぶらしてきた旅でした。",
+      local: "となり町くらいまでの、ほどよい旅でした。",
+      regional: "ちょっと遠くまで足をのばした旅でした。",
+      far: "ずいぶん遠くまで行った、大きな旅でした。",
+      remote: "うんと遠くまで行った、とびきりの旅でした。"
+    };
 
     const ACTIVE_EVENTS = [
       {
@@ -1884,6 +1953,26 @@
         hint: "遠旅の入り口。海辺や遠国へ向かいます。",
         icon: "◎",
         unlockAt: 9
+      },
+      {
+        id: "komonjo",
+        name: "古文書の束",
+        category: "遠旅の荷物",
+        durationMinutes: 10,
+        destinations: ["廃社の蔵", "書院の縁側"],
+        hint: "古文書の残る廃社や書院へ。文字の記憶が染みついた道具の気配があります。",
+        icon: "巻",
+        unlockAt: 7
+      },
+      {
+        id: "tsuzura",
+        name: "大きな葛籠",
+        category: "遠旅の荷物",
+        durationMinutes: 15,
+        destinations: ["遠国の市"],
+        hint: "遠国の市へ。大きな葛籠には、何でも入ります。",
+        icon: "籠",
+        unlockAt: 12
       }
     ];
 
@@ -1927,6 +2016,26 @@
         type: "luggage",
         luggageId: "compass",
         icon: "◎"
+      },
+      {
+        id: "buy_komonjo",
+        name: "古文書の束",
+        description: "廃社や書院へ向かえる、文字の道具です。",
+        branchCost: 40,
+        fineBranchCost: 1,
+        type: "luggage",
+        luggageId: "komonjo",
+        icon: "巻"
+      },
+      {
+        id: "buy_tsuzura",
+        name: "大きな葛籠",
+        description: "遠国の市まで届く、最も遠い旅の荷物です。",
+        branchCost: 55,
+        fineBranchCost: 2,
+        type: "luggage",
+        luggageId: "tsuzura",
+        icon: "籠"
       }
     ];
 
@@ -1984,7 +2093,11 @@
       },
       walk: null,
       guestDogs: [],
-      pendingReturn: null
+      pendingReturn: null,
+      homePrefecture: null,
+      museumLuggage: null,
+      postcards: [],
+      souvenirsOwned: {}
     };
 
     let state = loadState();
@@ -2042,7 +2155,11 @@
         museumAlbumEnabled: Boolean(nextState.museumAlbumEnabled),
         care,
         walk: nextState.walk || null,
-        guestDogs: Array.isArray(nextState.guestDogs) ? nextState.guestDogs : []
+        guestDogs: Array.isArray(nextState.guestDogs) ? nextState.guestDogs : [],
+        homePrefecture: nextState.homePrefecture || null,
+        museumLuggage: nextState.museumLuggage && typeof nextState.museumLuggage === "object" ? nextState.museumLuggage : null,
+        postcards: Array.isArray(nextState.postcards) ? nextState.postcards : [],
+        souvenirsOwned: nextState.souvenirsOwned && typeof nextState.souvenirsOwned === "object" ? nextState.souvenirsOwned : {}
       };
     }
 
@@ -2181,9 +2298,14 @@
       });
       $("dogButton").addEventListener("click", showDogSpeech);
       $("departButton").addEventListener("click", depart);
+      $("prepModeFurari").addEventListener("click", () => setPrepMode("furari"));
+      $("prepModeMuseum").addEventListener("click", () => setPrepMode("museum"));
+      $("museumDepartButton").addEventListener("click", departMuseum);
       $("receiveButton").addEventListener("click", receiveReturn);
       $("tsukumoTab").addEventListener("click", () => switchCollectionTab("tsukumo"));
       $("cardsTab").addEventListener("click", () => switchCollectionTab("cards"));
+      $("postcardsTab").addEventListener("click", () => switchCollectionTab("postcards"));
+      $("souvenirsTab").addEventListener("click", () => switchCollectionTab("souvenirs"));
       $("resetButton").addEventListener("click", () => {
         if (!confirm("最初からやり直しますか？")) return;
         localStorage.removeItem(STORAGE_KEY);
@@ -2385,7 +2507,7 @@
           <div class="guest-dog-figure ${guest.color}" aria-hidden="true"><i></i><i></i><b></b><span></span></div>
           <div>
             <h2>${guest.name}が遊びに来ています</h2>
-            <p class="small-note">${guest.line}</p>
+            <p class="small-note">${guest.line}${guest.branchGift ? ` 木のえだを${guest.branchGift}本くれました。` : ""}</p>
           </div>
         </div>
         <div class="guest-actions">
@@ -2634,11 +2756,29 @@
     }
 
     function ensureGuestDog() {
-      if (state.guestDogs.length) return;
-      const guest = pick(GUEST_DOGS);
+      const guest = state.guestDogs[0];
+      if (guest) {
+        // 到着から24時間で退場する
+        if (Date.now() - guest.visitStartedAt > 24 * 60 * 60 * 1000) {
+          state.guestDogs = [];
+          if (window.ShadowMulti) ShadowMulti.dismissGuest();
+          saveState();
+        }
+        return;
+      }
+      if (!window.ShadowMulti) return;
+      const npc = ShadowMulti.checkLoginVisit(GUEST_DOGS);
+      if (npc) arriveGuestDog(npc);
+    }
+
+    function arriveGuestDog(npc) {
+      ShadowMulti.arriveGuest(npc);
+      const branchGift = ShadowMulti.receiveBranch();
+      state.branches += branchGift;
       state.guestDogs = [{
-        ...guest,
+        ...npc,
         visitStartedAt: Date.now(),
+        branchGift,
         actions: { petCount: 0, fed: false, walked: false }
       }];
       saveState();
@@ -2972,6 +3112,7 @@
     }
 
     function renderPrep() {
+      setPrepMode(prepMode);
       selectedLuggage = null;
       $("departButton").disabled = true;
       $("luggageHint").textContent = "荷物を選ぶと、旅先の気配がわかります。";
@@ -3013,6 +3154,257 @@
       $("departButton").disabled = false;
     }
 
+    // ── ミュージアム旅 ──────────────────────────────────────
+    let prepMode = "furari";
+    let selectedMuseumLuggage = null;   // null = 身ひとつで出かける
+    let museumDataCache = null;         // { museums, prefectures, souvenirs }
+
+    async function loadMuseumData() {
+      if (museumDataCache) return museumDataCache;
+      const [gm, prefs, souvenirs] = await Promise.all([
+        fetch("data/game-museums-data.json").then((r) => r.json()),
+        fetch("data/prefectures.json").then((r) => r.json()),
+        fetch("data/souvenirs.json").then((r) => r.json())
+      ]);
+      museumDataCache = { museums: gm.museums, prefectures: prefs, souvenirs };
+      return museumDataCache;
+    }
+
+    function ensureMuseumLuggage() {
+      // 初回は11種すべて1個ずつ持っている（消耗品）
+      if (!state.museumLuggage) {
+        state.museumLuggage = {};
+        MUSEUM_LUGGAGE.forEach((item) => { state.museumLuggage[item.id] = 1; });
+        saveState();
+      }
+    }
+
+    function setPrepMode(mode) {
+      prepMode = mode;
+      $("prepModeFurari").classList.toggle("active", mode === "furari");
+      $("prepModeMuseum").classList.toggle("active", mode === "museum");
+      $("furariPrep").classList.toggle("hidden", mode !== "furari");
+      $("museumPrep").classList.toggle("hidden", mode !== "museum");
+      if (mode === "museum") renderMuseumPrep();
+    }
+
+    async function renderMuseumPrep() {
+      ensureMuseumLuggage();
+      selectedMuseumLuggage = null;
+      $("museumLuggageHint").textContent = "荷物を選ぶと、行き先の気配がわかります。なにも持たずに出かけることもできます（近場だけ）。";
+      $("museumDepartButton").disabled = false;
+      $("museumDepartButton").textContent = "身ひとつで行ってらっしゃい";
+
+      // 県選択（未設定のときだけ表示）
+      const panel = $("prefecturePanel");
+      if (!state.homePrefecture) {
+        panel.classList.remove("hidden");
+        try {
+          const data = await loadMuseumData();
+          const select = $("prefectureSelect");
+          if (!select.options.length) {
+            const placeholder = document.createElement("option");
+            placeholder.value = "";
+            placeholder.textContent = "都道府県を選ぶ";
+            select.appendChild(placeholder);
+            Object.entries(data.prefectures)
+              .filter(([key]) => !key.startsWith("_"))
+              .forEach(([key, value]) => {
+                const option = document.createElement("option");
+                option.value = key;
+                option.textContent = value.name;
+                select.appendChild(option);
+              });
+          }
+        } catch {
+          $("museumLuggageHint").textContent = "データを読み込めませんでした。通信できる場所でもう一度試してください。";
+          $("museumDepartButton").disabled = true;
+          return;
+        }
+      } else {
+        panel.classList.add("hidden");
+      }
+
+      const list = $("museumLuggageList");
+      list.innerHTML = "";
+      MUSEUM_LUGGAGE.forEach((item) => {
+        const count = state.museumLuggage[item.id] || 0;
+        const button = document.createElement("button");
+        button.className = "luggage-item";
+        button.disabled = count <= 0;
+        button.innerHTML = `
+          <span class="luggage-icon">${item.icon}</span>
+          <span>
+            <h3>${item.name}</h3>
+            <p>${item.genre}の館へ / のこり${count}個</p>
+          </span>
+        `;
+        button.addEventListener("click", () => selectMuseumLuggage(item, button));
+        list.appendChild(button);
+      });
+    }
+
+    function selectMuseumLuggage(item, button) {
+      if (selectedMuseumLuggage && selectedMuseumLuggage.id === item.id) {
+        // もう一度押すと選択解除（身ひとつに戻す）
+        selectedMuseumLuggage = null;
+        button.classList.remove("selected");
+        $("museumLuggageHint").textContent = "荷物を選ぶと、行き先の気配がわかります。なにも持たずに出かけることもできます（近場だけ）。";
+        $("museumDepartButton").textContent = "身ひとつで行ってらっしゃい";
+        return;
+      }
+      selectedMuseumLuggage = item;
+      document.querySelectorAll("#museumLuggageList .luggage-item").forEach((node) => node.classList.remove("selected"));
+      button.classList.add("selected");
+      $("museumLuggageHint").textContent = `${item.name}を持つと… ${item.genre}の香りのする場所へ行きそう。どこまで行くかは、帰ってからのお楽しみ。`;
+      $("museumDepartButton").textContent = "行ってらっしゃい";
+    }
+
+    async function departMuseum() {
+      if (state.journey) return;
+      if (!state.homePrefecture) {
+        const selected = $("prefectureSelect").value;
+        if (!selected) {
+          $("museumLuggageHint").textContent = "さきに、おうちのある都道府県を選んでください。";
+          return;
+        }
+        state.homePrefecture = selected;
+        saveState();
+      }
+      let data;
+      try {
+        data = await loadMuseumData();
+      } catch {
+        $("museumLuggageHint").textContent = "データを読み込めませんでした。通信できる場所でもう一度試してください。";
+        return;
+      }
+      ensureMuseumLuggage();
+      const luggageItem = selectedMuseumLuggage;
+      const hasLuggage = Boolean(luggageItem && (state.museumLuggage[luggageItem.id] || 0) > 0);
+
+      // 荷物あり=ジャンル絞り込み / 荷物なし=近隣（50km以内）の館のみ
+      let candidates = data.museums;
+      if (hasLuggage) {
+        candidates = data.museums.filter((m) => m.genre === luggageItem.genre);
+        if (!candidates.length) candidates = data.museums;
+      } else {
+        const home = data.prefectures[state.homePrefecture];
+        candidates = data.museums.filter((m) => {
+          const pref = data.prefectures[m.prefecture];
+          return pref && GameMuseums.haversineKm(home.lat, home.lng, pref.lat, pref.lng) <= 50;
+        });
+        if (!candidates.length) {
+          candidates = data.museums.filter((m) => m.prefecture === state.homePrefecture);
+        }
+      }
+      const museum = pick(candidates);
+
+      const gm = GameMuseums.toGameMuseum(
+        museum,
+        state.homePrefecture,
+        data.prefectures,
+        data.souvenirs,
+        hasLuggage ? [luggageItem.id] : []
+      );
+
+      if (hasLuggage) {
+        state.museumLuggage[luggageItem.id] -= 1;   // 消耗
+      }
+      state.journey = {
+        mode: "museum",
+        museumId: gm.id,
+        museumName: gm.name,
+        museumGenre: gm.genre,
+        distanceTier: gm.distanceTier,
+        souvenirIds: gm.souvenirIds,
+        luggageId: hasLuggage ? luggageItem.id : null,
+        luggageName: hasLuggage ? luggageItem.name : null,
+        destination: gm.name,
+        startedAt: Date.now(),
+        durationMs: gm.travelHours * 60 * 60 * 1000 * TIME_SCALE
+      };
+      saveState();
+      showScreen("homeScreen");
+    }
+
+    async function completeMuseumJourney() {
+      const journey = state.journey;
+      // リロード後の帰還では museumDataCache が空なので読み直す（失敗時はID表示で続行）
+      let data = museumDataCache;
+      if (!data) {
+        try { data = await loadMuseumData(); } catch { data = null; }
+      }
+      const souvenirs = data ? data.souvenirs : {};
+
+      // お土産抽選：絵葉書は必ず、追加お土産は候補から1つ
+      const obtained = ["sv_postcard_common"];
+      const extras = (journey.souvenirIds || []).filter((id) => id !== "sv_postcard_common");
+      const obtainable = window.PlayerProgress
+        ? PlayerProgress.filterObtainableSouvenirs(extras, souvenirs)
+        : extras;
+      if (obtainable.length) {
+        const picked = pick(obtainable);
+        const def = souvenirs[picked];
+        if (def && def.onceOnly) {
+          if (PlayerProgress.tryObtainOnceOnly(picked)) obtained.push(picked);
+        } else {
+          obtained.push(picked);
+        }
+      }
+      obtained.forEach((id) => {
+        state.souvenirsOwned[id] = (state.souvenirsOwned[id] || 0) + 1;
+      });
+
+      // 絵葉書コレクションへ追加
+      state.postcards.unshift({
+        museumId: journey.museumId,
+        museumName: journey.museumName,
+        genre: journey.museumGenre,
+        date: new Date().toISOString()
+      });
+
+      // Lv解放判定
+      const visitResult = window.PlayerProgress
+        ? PlayerProgress.recordVisit({ id: journey.museumId, genre: journey.museumGenre, distanceTier: journey.distanceTier })
+        : { newGenreUnlocked: null, newTierReached: null, becameLv3: false };
+
+      // 旅の記録カード
+      const card = {
+        id: `card-${Date.now()}`,
+        date: new Date().toISOString(),
+        dogName: state.dogName,
+        place: journey.museumName,
+        text: `${journey.museumName}まで出かけて、絵葉書を持ち帰りました。`,
+        scene: "museum_trip",
+        title: `${state.dogName}の旅の記録`
+      };
+      state.cards.unshift(card);
+
+      const branchReward = createBranchReward();
+      state.branches += branchReward.branches;
+
+      state.pendingReturn = {
+        journey,
+        museumTrip: {
+          obtained,
+          obtainedNames: obtained.map((id) => (souvenirs[id] ? souvenirs[id].name : id)),
+          newGenreUnlocked: visitResult.newGenreUnlocked,
+          newTierReached: visitResult.newTierReached,
+          becameLv3: visitResult.becameLv3
+        },
+        cardId: card.id,
+        branchReward
+      };
+      state.journey = null;
+      if (window.ShadowMulti && !state.guestDogs.length) {
+        const npc = ShadowMulti.checkReturnVisit(GUEST_DOGS);
+        if (npc) arriveGuestDog(npc);
+      }
+      saveState();
+      renderReturn();
+      showScreen("returnScreen");
+    }
+
     function depart() {
       if (!selectedLuggage) return;
       const destinations = [...selectedLuggage.destinations];
@@ -3046,6 +3438,10 @@
     }
 
     function completeJourney() {
+      if (state.journey && state.journey.mode === "museum") {
+        completeMuseumJourney();
+        return;
+      }
       const journey = state.journey;
       const met = chooseTsukumo(journey);
       const card = createCard(journey, met);
@@ -3068,6 +3464,11 @@
       };
       state.journey = null;
       unlockLuggage();
+      // シャドウマルチ：帰還をカウントし、条件を満たせばよそのワンコが遊びに来る
+      if (window.ShadowMulti && !state.guestDogs.length) {
+        const npc = ShadowMulti.checkReturnVisit(GUEST_DOGS);
+        if (npc) arriveGuestDog(npc);
+      }
       saveState();
       renderReturn();
       showScreen("returnScreen");
@@ -3085,12 +3486,13 @@
         return TSUKUMO.find((item) => item.id === "hachisu_tamari");
       }
       const luggageId = journey.luggageId;
-      const mvpPool = TSUKUMO.filter((item) => ["waraji", "chochin", "takekago"].includes(item.id));
-      const exact = mvpPool.filter((item) => item.luggageId === luggageId && !state.collected.includes(item.id));
+      const availableLuggageIds = new Set(LUGGAGE.map((item) => item.id));
+      const pool = TSUKUMO.filter((item) => item.rarity !== "museum_exclusive" && availableLuggageIds.has(item.luggageId));
+      const exact = pool.filter((item) => item.luggageId === luggageId && !state.collected.includes(item.id));
       if (exact.length) return pick(exact);
-      const uncollected = mvpPool.filter((item) => !state.collected.includes(item.id));
+      const uncollected = pool.filter((item) => !state.collected.includes(item.id));
       if (uncollected.length) return pick(uncollected);
-      return pick(mvpPool);
+      return pick(pool);
     }
 
     function createCard(journey, tsukumo) {
@@ -3128,6 +3530,10 @@
     function renderReturn() {
       const pending = state.pendingReturn;
       if (!pending) return;
+      if (pending.museumTrip) {
+        renderMuseumReturn(pending);
+        return;
+      }
       const journey = pending.journey;
       const tsukumo = TSUKUMO.find((item) => item.id === pending.tsukumoId);
       const card = state.cards.find((item) => item.id === pending.cardId);
@@ -3141,6 +3547,32 @@
         <p class="small-note">木のえだを${branchReward.branches}本くわえて帰ってきました。</p>
       `;
       $("returnCard").innerHTML = [extraCard, card].filter(Boolean).map(cardHtml).join("");
+    }
+
+    function renderMuseumReturn(pending) {
+      const journey = pending.journey;
+      const trip = pending.museumTrip;
+      const branchReward = pending.branchReward || { branches: 0, fineBranches: 0 };
+      const card = state.cards.find((item) => item.id === pending.cardId);
+      const feel = DISTANCE_TIER_RETURN_FEEL[journey.distanceTier] || "";
+      $("returnSummary").textContent = journey.luggageName
+        ? `${journey.luggageName}を持って、${journey.museumName}に行ってきました。`
+        : `身ひとつで、${journey.museumName}に行ってきました。`;
+
+      const unlockNotes = [];
+      if (trip.newGenreUnlocked) unlockNotes.push(`${trip.newGenreUnlocked}の館と仲良くなりました。絵葉書の種類が増えます。`);
+      if (trip.newTierReached) unlockNotes.push("はじめての遠さまで行きました。とおくのお土産に出会いやすくなります。");
+      if (trip.becameLv3) unlockNotes.push("このお出かけは、とくべつな旅になりました。");
+
+      $("returnTsukumo").innerHTML = `
+        <div class="tsukumo-figure">✉️</div>
+        <h2>おみやげ</h2>
+        <p>${trip.obtainedNames.join("、")}</p>
+        ${feel ? `<p class="small-note">${feel}</p>` : ""}
+        <p class="small-note">木のえだを${branchReward.branches}本くわえて帰ってきました。</p>
+        ${unlockNotes.map((note) => `<p class="small-note">${note}</p>`).join("")}
+      `;
+      $("returnCard").innerHTML = card ? cardHtml(card) : "";
     }
 
     function receiveReturn() {
@@ -3236,6 +3668,70 @@
       $("collectionCount").textContent = `${state.collected.length} / ${TSUKUMO.length} 体`;
       renderTsukumoPanel();
       renderCardsPanel();
+      renderPostcardsPanel();
+      renderSouvenirsPanel();
+    }
+
+    const SOUVENIR_ICONS = {
+      sv_postcard_common: "✉️", sv_kamon_seal: "🏵️", sv_komonjo: "📜", sv_utsuwa: "🍵", sv_sword: "⚔️",
+      sv_painting: "🖼️", sv_kakejiku: "🎋", sv_sculpture: "🗿",
+      sv_folkcraft: "🎎", sv_costume: "👘", sv_minggu: "🧺",
+      sv_book: "📚",
+      sv_element: "🧪", sv_planetarium: "🔭", sv_globe: "🌏",
+      sv_mineral: "💎", sv_herbarium: "🌿", sv_fossil: "🦴", sv_feather: "🪶", sv_leucochloridium: "🐌",
+      sv_aquarium_tank: "🐠", sv_fish: "🐟", sv_aquatic_plant: "🌱",
+      sv_watering_can: "🚿", sv_flower: "🌼",
+      sv_stuffed_animal: "🧸",
+      sv_mystery_stone: "🪨", sv_pager: "📟", sv_one_sock: "🧦", sv_stag_beetle: "🪲"
+    };
+
+    const SOUVENIR_NAMES = {
+      sv_postcard_common: "絵葉書", sv_kamon_seal: "家紋シール", sv_komonjo: "古文書の写し", sv_utsuwa: "器", sv_sword: "刀剣",
+      sv_painting: "名画", sv_kakejiku: "掛け軸", sv_sculpture: "彫刻品",
+      sv_folkcraft: "郷土玩具のミニチュア", sv_costume: "民族衣装", sv_minggu: "民具",
+      sv_book: "本",
+      sv_element: "元素記号オブジェ", sv_planetarium: "プラネタリウムの模型", sv_globe: "地球儀",
+      sv_mineral: "鉱石のかけら", sv_herbarium: "植物標本カード", sv_fossil: "化石", sv_feather: "鳥の羽", sv_leucochloridium: "ロイコクロリディウム",
+      sv_aquarium_tank: "水槽", sv_fish: "魚", sv_aquatic_plant: "水草",
+      sv_watering_can: "じょうろ", sv_flower: "草花",
+      sv_stuffed_animal: "動物のぬいぐるみ",
+      sv_mystery_stone: "不思議な石", sv_pager: "ポケベル", sv_one_sock: "靴下（かたっぽ）", sv_stag_beetle: "クワガタ"
+    };
+
+    function renderPostcardsPanel() {
+      const panel = $("postcardsPanel");
+      if (!state.postcards.length) {
+        panel.innerHTML = `<p class="small-note">まだ絵葉書がありません。ミュージアム旅に出かけると、かならず1枚持ち帰ります。</p>`;
+        return;
+      }
+      panel.innerHTML = state.postcards.map((postcard) => `
+        <article class="trip-card">
+          <h3>✉️ ${postcard.museumName}</h3>
+          <p>${postcard.genre} / ${new Date(postcard.date).toLocaleDateString("ja-JP")}</p>
+        </article>
+      `).join("");
+    }
+
+    function renderSouvenirsPanel() {
+      const panel = $("souvenirsPanel");
+      const entries = Object.entries(state.souvenirsOwned || {}).filter(([, count]) => count > 0);
+      if (!entries.length) {
+        panel.innerHTML = `<p class="small-note">まだおみやげがありません。ミュージアム旅で持ち帰ることがあります。</p>`;
+        return;
+      }
+      panel.innerHTML = "";
+      entries.forEach(([id, count]) => {
+        const div = document.createElement("div");
+        div.className = "book-item";
+        div.innerHTML = `
+          <span class="tsukumo-icon">${SOUVENIR_ICONS[id] || "🎁"}</span>
+          <span>
+            <h3>${SOUVENIR_NAMES[id] || id}</h3>
+            <p>${count}個</p>
+          </span>
+        `;
+        panel.appendChild(div);
+      });
     }
 
     function renderTsukumoPanel() {
@@ -3286,11 +3782,12 @@
     }
 
     function switchCollectionTab(tab) {
-      const isTsukumo = tab === "tsukumo";
-      $("tsukumoTab").classList.toggle("active", isTsukumo);
-      $("cardsTab").classList.toggle("active", !isTsukumo);
-      $("tsukumoPanel").classList.toggle("hidden", !isTsukumo);
-      $("cardsPanel").classList.toggle("hidden", isTsukumo);
+      const tabs = ["tsukumo", "cards", "postcards", "souvenirs"];
+      const panels = { tsukumo: "tsukumoPanel", cards: "cardsPanel", postcards: "postcardsPanel", souvenirs: "souvenirsPanel" };
+      tabs.forEach((name) => {
+        $(`${name}Tab`).classList.toggle("active", name === tab);
+        $(panels[name]).classList.toggle("hidden", name !== tab);
+      });
       $("detailPanel").classList.add("hidden");
       if ($("collectionScreen").classList.contains("active")) updateBottomTabs("collectionScreen");
     }
@@ -3367,6 +3864,42 @@
       }
       if (id === "takekago") {
         return `<svg ${common}><path d="M18 30h36l-5 28H23z" fill="#D9C69A" stroke="#2D2D2D" stroke-width="3"/><path d="M24 30c1-13 23-13 24 0M24 38h27M22 47h29M29 31l-3 26M38 31v27M47 31l-3 26" fill="none" stroke="#8C5F3D" stroke-width="3"/></svg>`;
+      }
+      if (id === "goshuincho") {
+        return `<svg ${common}><rect x="20" y="12" width="32" height="48" rx="2" fill="#DCE7EA" stroke="#2D2D2D" stroke-width="3"/><rect x="20" y="12" width="8" height="48" fill="#1A3A5C"/><line x1="28" y1="12" x2="28" y2="60" stroke="#2D2D2D" stroke-width="2"/><circle cx="39" cy="33" r="9" fill="none" stroke="#C0392B" stroke-width="2.5"/><path d="M35 33h8M39 29v8" stroke="#C0392B" stroke-width="2.5"/></svg>`;
+      }
+      if (id === "shokudai") {
+        return `<svg ${common}><path d="M22 58h28" stroke="#2D2D2D" stroke-width="3"/><rect x="30" y="48" width="12" height="10" rx="1" fill="#8C5F3D" stroke="#2D2D2D" stroke-width="2.5"/><rect x="34" y="26" width="4" height="22" fill="#D9C69A" stroke="#2D2D2D" stroke-width="1.5"/><ellipse cx="36" cy="21" rx="5" ry="7" fill="#F5C842" stroke="#2D2D2D" stroke-width="2"/><ellipse cx="36" cy="25" rx="3" ry="4" fill="#C0392B" opacity="0.75"/></svg>`;
+      }
+      if (id === "koro") {
+        return `<svg ${common}><ellipse cx="36" cy="42" rx="18" ry="13" fill="#8C5F3D" stroke="#2D2D2D" stroke-width="3"/><path d="M20 52l-3 8M36 55v7M52 52l3 8" stroke="#2D2D2D" stroke-width="3" stroke-linecap="round"/><path d="M30 28c1-8 12-8 12-18" fill="none" stroke="#DCE7EA" stroke-width="2.5" stroke-linecap="round"/><path d="M36 30c0-6 8-8 6-16" fill="none" stroke="#DCE7EA" stroke-width="2" stroke-linecap="round"/></svg>`;
+      }
+      if (id === "suzu") {
+        return `<svg ${common}><path d="M20 48c0-20 32-20 32 0z" fill="#D9C69A" stroke="#2D2D2D" stroke-width="3"/><path d="M20 48h32" stroke="#2D2D2D" stroke-width="2.5"/><rect x="33" y="13" width="6" height="14" rx="3" fill="#D9C69A" stroke="#2D2D2D" stroke-width="2"/><circle cx="36" cy="55" r="5" fill="#D9C69A" stroke="#2D2D2D" stroke-width="2.5"/><line x1="36" y1="48" x2="36" y2="50" stroke="#2D2D2D" stroke-width="2"/></svg>`;
+      }
+      if (id === "makimono") {
+        return `<svg ${common}><rect x="18" y="28" width="36" height="18" rx="1" fill="#F5F0E8" stroke="#2D2D2D" stroke-width="2.5"/><ellipse cx="18" cy="37" rx="6" ry="11" fill="#D9C69A" stroke="#2D2D2D" stroke-width="3"/><ellipse cx="54" cy="37" rx="6" ry="11" fill="#D9C69A" stroke="#2D2D2D" stroke-width="3"/><path d="M22 33h24M22 37h28M22 41h20" stroke="#8C5F3D" stroke-width="1.5" opacity="0.6"/></svg>`;
+      }
+      if (id === "kagami") {
+        return `<svg ${common}><circle cx="36" cy="30" r="19" fill="#8C5F3D" stroke="#2D2D2D" stroke-width="3"/><circle cx="36" cy="30" r="13" fill="#D9C69A" stroke="#2D2D2D" stroke-width="2"/><circle cx="36" cy="30" r="4" fill="#8C5F3D" stroke="#2D2D2D" stroke-width="1.5"/><rect x="33" y="49" width="6" height="13" rx="2" fill="#8C5F3D" stroke="#2D2D2D" stroke-width="2.5"/></svg>`;
+      }
+      if (id === "tsuzura") {
+        return `<svg ${common}><rect x="11" y="30" width="50" height="32" rx="3" fill="#D9C69A" stroke="#2D2D2D" stroke-width="3"/><rect x="11" y="30" width="50" height="8" rx="2" fill="#8C5F3D" stroke="#2D2D2D" stroke-width="2"/><path d="M21 38v24M31 38v24M41 38v24M51 38v24" stroke="#8C5F3D" stroke-width="1.5" opacity="0.5"/><path d="M11 46h50M11 54h50" stroke="#8C5F3D" stroke-width="1.5" opacity="0.5"/><rect x="29" y="31" width="14" height="6" rx="2" fill="#D9C69A" stroke="#2D2D2D" stroke-width="1.5"/></svg>`;
+      }
+      if (id === "suzuri") {
+        return `<svg ${common}><rect x="12" y="24" width="48" height="28" rx="4" fill="#2D2D2D" stroke="#2D2D2D" stroke-width="3"/><rect x="16" y="28" width="26" height="18" rx="2" fill="#1A3A5C" opacity="0.7"/><ellipse cx="50" cy="37" rx="7" ry="9" fill="#1A3A5C" stroke="#D9C69A" stroke-width="1.5"/></svg>`;
+      }
+      if (id === "chawan") {
+        return `<svg ${common}><path d="M16 40c0 14 12 22 20 22s20-8 20-22z" fill="#8C5F3D" stroke="#2D2D2D" stroke-width="3"/><ellipse cx="36" cy="40" rx="20" ry="5" fill="#8C5F3D" stroke="#2D2D2D" stroke-width="2.5"/><ellipse cx="36" cy="60" rx="10" ry="3" fill="#8C5F3D" stroke="#2D2D2D" stroke-width="2"/><path d="M53 34l5-5" stroke="#F5F0E8" stroke-width="3" stroke-linecap="round"/></svg>`;
+      }
+      if (id === "kushi") {
+        return `<svg ${common}><rect x="14" y="22" width="44" height="14" rx="6" fill="#8C5F3D" stroke="#2D2D2D" stroke-width="3"/><path d="M20 36v16M27 36v16M34 36v16M41 36v16M48 36v16" stroke="#8C5F3D" stroke-width="5" stroke-linecap="round"/><path d="M20 36v16M27 36v16M34 36v16M41 36v16M48 36v16" stroke="#2D2D2D" stroke-width="2" stroke-linecap="round"/></svg>`;
+      }
+      if (id === "sensu") {
+        return `<svg ${common}><path d="M36 56L8 24h56z" fill="#F2D7D5" stroke="#2D2D2D" stroke-width="2.5"/><path d="M36 56L8 24M36 56L18 18M36 56L36 14M36 56L54 18M36 56L64 24" stroke="#2D2D2D" stroke-width="1.5" opacity="0.55"/><path d="M12 26c14-14 34-14 48 0" fill="none" stroke="#C0392B" stroke-width="2.5"/><circle cx="36" cy="56" r="4" fill="#8C5F3D" stroke="#2D2D2D" stroke-width="2"/></svg>`;
+      }
+      if (id === "kanagu") {
+        return `<svg ${common}><ellipse cx="36" cy="36" rx="22" ry="22" fill="#2D2D2D" stroke="#2D2D2D" stroke-width="3"/><ellipse cx="36" cy="36" rx="16" ry="16" fill="none" stroke="#D9C69A" stroke-width="1.5"/><ellipse cx="36" cy="36" rx="4" ry="10" fill="#8C5F3D" stroke="#D9C69A" stroke-width="1.5"/><circle cx="24" cy="28" r="3" fill="#D9C69A"/><circle cx="48" cy="28" r="3" fill="#D9C69A"/><circle cx="24" cy="44" r="3" fill="#D9C69A"/><circle cx="48" cy="44" r="3" fill="#D9C69A"/></svg>`;
       }
       if (id === "hachisu_tamari") {
         return `<svg ${common}>

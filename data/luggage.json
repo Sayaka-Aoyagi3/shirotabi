@@ -1,0 +1,68 @@
+{
+  "lg_notebook": {
+    "name": "手帳",
+    "genre": "歴史",
+    "rarity": "common",
+    "paid": false
+  },
+  "lg_sketchbook": {
+    "name": "スケッチブック",
+    "genre": "美術",
+    "rarity": "common",
+    "paid": false
+  },
+  "lg_furoshiki": {
+    "name": "風呂敷",
+    "genre": "民俗",
+    "rarity": "common",
+    "paid": false
+  },
+  "lg_bunkobon": {
+    "name": "文庫本",
+    "genre": "文学",
+    "rarity": "common",
+    "paid": false
+  },
+  "lg_tools": {
+    "name": "工具",
+    "genre": "科学技術",
+    "rarity": "common",
+    "paid": false
+  },
+  "lg_loupe": {
+    "name": "虫眼鏡",
+    "genre": "自然科学",
+    "rarity": "common",
+    "paid": false
+  },
+  "lg_water_bottle": {
+    "name": "水筒",
+    "genre": "水族館",
+    "rarity": "common",
+    "paid": false
+  },
+  "lg_gloves": {
+    "name": "軍手",
+    "genre": "植物園",
+    "rarity": "common",
+    "paid": false
+  },
+  "lg_snack": {
+    "name": "おやつ",
+    "genre": "動物園",
+    "rarity": "common",
+    "paid": false
+  },
+  "lg_lantern": {
+    "name": "ランタン",
+    "genre": "謎のパラダイス",
+    "rarity": "common",
+    "paid": false
+  },
+  "lg_backpack": {
+    "name": "リュック",
+    "genre": "総合",
+    "rarity": "common",
+    "paid": false
+  }
+}
