@@ -489,6 +489,55 @@
         url("assets/images/sirotabi_house-outside.png") center / cover no-repeat;
     }
 
+    #homeScreen .genkan.indoor {
+      background:
+        linear-gradient(180deg, rgba(245, 240, 232, 0.03), rgba(45, 45, 45, 0.08)),
+        url("assets/images/sirotabi_house-entrance.png") center / cover no-repeat;
+    }
+
+    .home-view-toggle {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 5;
+      min-height: 40px;
+      padding: 8px 14px;
+      border: 1px solid rgba(45, 45, 45, 0.14);
+      border-radius: 20px;
+      background: rgba(255, 253, 249, 0.9);
+      font-size: 13px;
+      box-shadow: 0 6px 14px var(--shadow);
+    }
+
+    .furniture-hotspot {
+      position: absolute;
+      z-index: 4;
+      display: grid;
+      gap: 2px;
+      justify-items: center;
+      padding: 8px 10px;
+      border: 1px solid rgba(45, 45, 45, 0.12);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 249, 0.82);
+      font-size: 12px;
+      box-shadow: 0 6px 14px var(--shadow);
+    }
+
+    .furniture-hotspot .furniture-icon {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    #souvenirShelfHotspot {
+      top: 16%;
+      right: 8%;
+    }
+
+    #postcardDeskHotspot {
+      top: 34%;
+      left: 8%;
+    }
+
     #homeScreen .status-panel {
       left: 18px;
       right: 18px;
@@ -1527,7 +1576,14 @@
         <button class="icon-button" id="resetButton" title="最初から">↺</button>
       </header>
 
-      <div class="genkan">
+      <div class="genkan" id="homeGenkan">
+        <button class="home-view-toggle" id="homeViewToggle">🏠 おうちへ</button>
+        <button class="furniture-hotspot hidden" id="souvenirShelfHotspot" title="おみやげ棚">
+          <span class="furniture-icon">🎁</span><span>おみやげ棚</span>
+        </button>
+        <button class="furniture-hotspot hidden" id="postcardDeskHotspot" title="文机">
+          <span class="furniture-icon">✉️</span><span>絵葉書帳</span>
+        </button>
         <div class="status-panel">
           <strong id="statusTitle">玄関先でひと休み</strong>
           <span id="statusText">旅の準備ができます。</span>
@@ -2298,6 +2354,9 @@
       });
       $("dogButton").addEventListener("click", showDogSpeech);
       $("departButton").addEventListener("click", depart);
+      $("homeViewToggle").addEventListener("click", toggleHomeView);
+      $("souvenirShelfHotspot").addEventListener("click", () => openCollection("souvenirs"));
+      $("postcardDeskHotspot").addEventListener("click", () => openCollection("postcards"));
       $("prepModeFurari").addEventListener("click", () => setPrepMode("furari"));
       $("prepModeMuseum").addEventListener("click", () => setPrepMode("museum"));
       $("museumDepartButton").addEventListener("click", departMuseum);
@@ -2394,6 +2453,7 @@
       renderGuestPanel();
       renderHomeTsukumo();
       renderEventGuide();
+      applyHomeView();
     }
 
     function renderEventGuide() {
@@ -2506,8 +2566,8 @@
         <div class="guest-visit-head">
           <div class="guest-dog-figure ${guest.color}" aria-hidden="true"><i></i><i></i><b></b><span></span></div>
           <div>
-            <h2>${guest.name}が遊びに来ています</h2>
-            <p class="small-note">${guest.line}${guest.branchGift ? ` 木のえだを${guest.branchGift}本くれました。` : ""}</p>
+            <h2>${guest.name}があそびにきています</h2>
+            ${guest.branchGift ? `<p class="small-note">木のえだを${guest.branchGift}本くれました。</p>` : ""}
           </div>
         </div>
         <div class="guest-actions">
@@ -3152,6 +3212,33 @@
       button.classList.add("selected");
       $("luggageHint").textContent = `この荷物で出かけると… ${item.hint}`;
       $("departButton").disabled = false;
+    }
+
+    // ── おうち（屋内）⇔ にわ（庭）切替 ───────────────────────
+    let homeView = "garden";
+
+    function toggleHomeView() {
+      homeView = homeView === "garden" ? "indoor" : "garden";
+      applyHomeView();
+    }
+
+    function applyHomeView() {
+      const indoor = homeView === "indoor";
+      $("homeGenkan").classList.toggle("indoor", indoor);
+      $("homeViewToggle").textContent = indoor ? "🌿 にわへ" : "🏠 おうちへ";
+      $("souvenirShelfHotspot").classList.toggle("hidden", !indoor);
+      $("postcardDeskHotspot").classList.toggle("hidden", !indoor);
+      // 庭の住人たちは屋内では表示しない
+      $("dogButton").classList.toggle("hidden", indoor);
+      $("kamadoButton").classList.toggle("hidden", indoor);
+      $("dogSpeech").classList.remove("show");
+      if (indoor) {
+        $("guestPanel").classList.add("hidden");
+        $("homeTsukumo").classList.add("hidden");
+      } else {
+        renderGuestPanel();
+        renderHomeTsukumo();
+      }
     }
 
     // ── ミュージアム旅 ──────────────────────────────────────
