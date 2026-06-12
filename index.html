@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>しろたび</title>
+  <title>みゅーぽす</title>
   <link rel="manifest" href="manifest.json">
   <script src="js/game-museums.js"></script>
   <script src="js/player-progress.js"></script>
@@ -11,7 +11,7 @@
   <meta name="theme-color" content="#1A3A5C">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="しろたび">
+  <meta name="apple-mobile-web-app-title" content="みゅーぽす">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1534,6 +1534,68 @@
       line-height: 1.7;
     }
 
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .move-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: rgba(26, 58, 92, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .move-panel {
+      width: min(420px, 100%);
+      max-height: 90dvh;
+      overflow-y: auto;
+      background: var(--paper);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px var(--shadow);
+      display: grid;
+      gap: 10px;
+    }
+
+    .move-panel h2 {
+      margin: 0;
+    }
+
+    .move-section {
+      display: grid;
+      gap: 6px;
+    }
+
+    .move-section h3 {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .move-panel textarea {
+      width: 100%;
+      font-size: 12px;
+      font-family: inherit;
+      border: 1px solid var(--indigo);
+      border-radius: 8px;
+      padding: 8px;
+      resize: none;
+      word-break: break-all;
+      box-sizing: border-box;
+    }
+
+    .move-note {
+      margin: 0;
+      font-size: 12px;
+      color: rgba(45, 45, 45, 0.7);
+      line-height: 1.6;
+    }
+
     .hidden {
       display: none !important;
     }
@@ -1551,8 +1613,8 @@
           <div class="tail"></div>
           <div class="dog"><div class="face"><span class="eye left"></span><span class="eye right"></span><span class="nose"></span><span class="mouth"></span></div></div>
         </div>
-        <h1>しろたび</h1>
-        <p>旅好きの白い犬に、名前をつけてください。</p>
+        <h1>みゅーぽす</h1>
+        <p>旅好きの白い犬のぬいぐるみに、名前をつけてください。</p>
         <input id="dogNameInput" maxlength="10" placeholder="例：しろ、もち、こはく">
         <button class="primary" id="startGameButton">決定</button>
         <div class="unlock-panel">
@@ -1566,14 +1628,17 @@
     <section id="homeScreen" class="screen">
       <header class="topbar">
         <div>
-          <h1 class="brand">しろたび</h1>
-          <p class="sub" id="homeSubtitle">白い犬の旅支度</p>
+          <h1 class="brand">みゅーぽす</h1>
+          <p class="sub" id="homeSubtitle">ぬいぐるみの旅支度</p>
           <div class="resource-row">
             <span class="resource-pill" id="branchCount">木のえだ 0本</span>
             <span class="resource-pill" id="fineBranchCount">りっぱな木のえだ 0本</span>
           </div>
         </div>
-        <button class="icon-button" id="resetButton" title="最初から">↺</button>
+        <div class="header-actions">
+          <button class="icon-button" id="moveButton" title="ひっこしコード">📦</button>
+          <button class="icon-button" id="resetButton" title="最初から">↺</button>
+        </div>
       </header>
 
       <div class="genkan" id="homeGenkan">
@@ -1846,6 +1911,27 @@
       </button>
     </nav>
   </main>
+
+  <div class="move-overlay hidden" id="moveOverlay">
+    <div class="move-panel">
+      <h2>ひっこしコード</h2>
+      <p class="move-note">あそんでいるデータを、あたらしいページや別の端末へ持っていくためのコードです。</p>
+      <div class="move-section">
+        <h3>かきだす</h3>
+        <p class="move-note">このコードをコピーして、ひっこし先の「よみこむ」に貼り付けてください。</p>
+        <textarea id="moveExportText" readonly rows="4"></textarea>
+        <button class="primary" id="moveCopyButton">コードをコピー</button>
+      </div>
+      <div class="move-section">
+        <h3>よみこむ</h3>
+        <p class="move-note">前のページでコピーしたコードを貼り付けてください。いまのデータは上書きされます。</p>
+        <textarea id="moveImportText" rows="4" placeholder="ここにコードを貼り付け"></textarea>
+        <button class="primary" id="moveImportButton">よみこんで上書き</button>
+      </div>
+      <p class="unlock-message" id="moveMessage"></p>
+      <button class="quiet" id="moveCloseButton">とじる</button>
+    </div>
+  </div>
 
   <script>
     const STORAGE_KEY = "shirotabi.save.v1";
@@ -2223,6 +2309,64 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
 
+    const MOVE_DATA_KEYS = [STORAGE_KEY, "sirotabi_progress", "sirotabi_shadow_multi"];
+
+    function buildMoveCode() {
+      const payload = { app: "myupos-move", v: 1, savedAt: new Date().toISOString(), data: {} };
+      MOVE_DATA_KEYS.forEach((key) => {
+        const raw = localStorage.getItem(key);
+        if (raw !== null) payload.data[key] = raw;
+      });
+      return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    }
+
+    function openMoveOverlay() {
+      saveState();
+      $("moveExportText").value = buildMoveCode();
+      $("moveImportText").value = "";
+      $("moveMessage").textContent = "";
+      $("moveOverlay").classList.remove("hidden");
+    }
+
+    function copyMoveCode() {
+      const text = $("moveExportText").value;
+      const fallbackCopy = () => {
+        $("moveExportText").select();
+        document.execCommand("copy");
+        $("moveMessage").textContent = "コードをコピーしました。";
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+          .then(() => { $("moveMessage").textContent = "コードをコピーしました。"; })
+          .catch(fallbackCopy);
+      } else {
+        fallbackCopy();
+      }
+    }
+
+    function importMoveCode() {
+      const code = $("moveImportText").value.replace(/\s+/g, "");
+      if (!code) {
+        $("moveMessage").textContent = "コードを貼り付けてください。";
+        return;
+      }
+      let payload = null;
+      try {
+        payload = JSON.parse(decodeURIComponent(escape(atob(code))));
+      } catch (e) {
+        payload = null;
+      }
+      if (!payload || payload.app !== "myupos-move" || !payload.data || !payload.data[STORAGE_KEY]) {
+        $("moveMessage").textContent = "ひっこしコードを読み取れませんでした。コピーし直してください。";
+        return;
+      }
+      if (!confirm("いまのデータをひっこしコードの内容で上書きします。よろしいですか？")) return;
+      Object.keys(payload.data).forEach((key) => {
+        localStorage.setItem(key, payload.data[key]);
+      });
+      location.reload();
+    }
+
     function showScreen(id) {
       document.querySelectorAll(".screen").forEach((screen) => screen.classList.remove("active"));
       $(id).classList.add("active");
@@ -2365,6 +2509,10 @@
       $("cardsTab").addEventListener("click", () => switchCollectionTab("cards"));
       $("postcardsTab").addEventListener("click", () => switchCollectionTab("postcards"));
       $("souvenirsTab").addEventListener("click", () => switchCollectionTab("souvenirs"));
+      $("moveButton").addEventListener("click", openMoveOverlay);
+      $("moveCloseButton").addEventListener("click", () => $("moveOverlay").classList.add("hidden"));
+      $("moveCopyButton").addEventListener("click", copyMoveCode);
+      $("moveImportButton").addEventListener("click", importMoveCode);
       $("resetButton").addEventListener("click", () => {
         if (!confirm("最初からやり直しますか？")) return;
         localStorage.removeItem(STORAGE_KEY);
