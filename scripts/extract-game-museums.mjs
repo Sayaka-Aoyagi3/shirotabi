@@ -31,6 +31,8 @@ const slim = museums.map(m => ({
   prefecture: m.prefecture,
   // genreが配列の場合は先頭を使う（謎のパラダイス優先の並びを想定）
   genre: Array.isArray(m.genre) ? m.genre[0] : (m.genre ?? '総合'),
+  // 外観イラスト（マップとみゅーぽすで共有するアセット）。設定館のみ含める。
+  ...(m.illustration ? { illustration: m.illustration } : {}),
 }));
 
 const output = {
